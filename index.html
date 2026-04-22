@@ -86,8 +86,9 @@ main { max-width: 900px; margin: 0 auto; padding: 52px 24px 80px; }
 .results-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.02em; }
 .results-sub { font-size: 0.72rem; font-family: var(--font-mono); color: var(--muted); }
 
-.prezzi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-@media (max-width: 540px) { .prezzi-grid { grid-template-columns: 1fr; } }
+.prezzi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 640px) { .prezzi-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 400px) { .prezzi-grid { grid-template-columns: 1fr; } }
 
 .prezzo-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; transition: border-color 0.2s; position: relative; overflow: hidden; }
 .prezzo-card:hover { border-color: #444; }
@@ -193,6 +194,10 @@ main { max-width: 900px; margin: 0 auto; padding: 52px 24px 80px; }
           <span class="classifica-name">THL</span>
           <span class="cls-badge purple" id="cls-thl">—</span>
         </div>
+        <div class="classifica-item">
+          <span class="classifica-name">BS</span>
+          <span class="cls-badge gray" id="cls-bs">—</span>
+        </div>
       </div>
       <span class="area-info" id="area-info">Area base: 1.20 m²</span>
     </div>
@@ -209,11 +214,11 @@ main { max-width: 900px; margin: 0 auto; padding: 52px 24px 80px; }
   <div class="card">
     <div class="card-label">Numero di bancali da spedire</div>
     <div class="qty-row">
-      <button class="qty-btn selected" onclick="setQty(1)">1</button>
-      <button class="qty-btn" onclick="setQty(2)">2</button>
-      <button class="qty-btn" onclick="setQty(3)">3</button>
-      <button class="qty-btn" onclick="setQty(4)">4</button>
-      <button class="qty-btn" onclick="setQty(5)">5</button>
+      <button class="qty-btn selected" id="qty-btn-1" onclick="setQty(1)">1</button>
+      <button class="qty-btn" id="qty-btn-2" onclick="setQty(2)">2</button>
+      <button class="qty-btn" id="qty-btn-3" onclick="setQty(3)">3</button>
+      <button class="qty-btn" id="qty-btn-4" onclick="setQty(4)">4</button>
+      <button class="qty-btn" id="qty-btn-5" onclick="setQty(5)">5</button>
       <input class="qty-custom" id="qty-custom" type="number" min="1" max="99" placeholder="+" oninput="onQtyCustom(this.value)">
     </div>
   </div>
@@ -233,7 +238,7 @@ main { max-width: 900px; margin: 0 auto; padding: 52px 24px 80px; }
   </div>
 
   <div class="disclaimer">
-    ⚠️ Prezzi indicativi basati su listini reali: Prealpina (mag/2026), MediaLogistica (2023), BRT Origgio (gen/2026), THL (2024).
+    ⚠️ Prezzi indicativi basati su listini reali: Prealpina (mag/2026), MediaLogistica (2023), BRT Origgio (gen/2026), THL (2024), BS Partners (2026).
     Non includono IVA, supplemento carburante, ZTL, isole minori o servizi accessori. Verificare sempre con il vettore prima della spedizione.
   </div>
 </div>
@@ -557,6 +562,57 @@ const PREALPINA_NS = {
   'VI': [40.70,47.10,61.50,67.90,73.90,90.30,99.30,106.10,123.30],
   'BL': [51.10,56.20,70.90,80.80,90.80,110.80,125.30,132.00,151.80],
 };
+
+// ══════════════════════════════════════════════
+// BS PARTNERS — tariffa €/100 kg a scaglioni
+// Fonte: BS_PARTNER.xlsx (2026)
+// Province coperte: solo Nord Italia
+// Scaglioni: 0-100, 101-200, 201-300, 301-400, 401-500, 501-600, 601-700,
+//            701-800, 801-900, 901-1000, 1001-1250, 1251-1500, 1501-1750,
+//            1751-2000, 2001-2250, 2251-2500, 2501-3000, 3001-3500, 3501-4000,
+//            4001-4500, 4501-5000, 5001+
+// Pesi in KG tassabili; prezzo minimo fisso
+
+const BS_SCAGLIONI = [0,101,201,301,401,501,601,701,801,901,1001,1251,1501,1751,2001,2251,2501,3001,3501,4001,4501,5001];
+
+const BS_DATA = {
+  // prov: { min, rates: [€/100kg per scaglione] }
+  'TO': { min:168.60, prov:'Torino',          rates:[25.25,25.25,25.25,25.25,21.05,16.86,16.86,16.86,16.86,15.59,14.33,14.33,14.33,14.33,14.33,12.32,10.31,10.31,10.31,10.31,9.18,8.04] },
+  'CN': { min:185.37, prov:'Cuneo',           rates:[34.24,34.24,34.24,34.24,28.48,22.71,22.71,22.71,22.71,20.83,18.96,18.96,18.96,18.96,18.96,16.29,13.63,13.63,13.63,13.63,12.01,10.40] },
+  'AT': { min:168.60, prov:'Asti',            rates:[25.25,25.25,25.25,25.25,21.05,16.86,16.86,16.86,16.86,15.59,14.33,14.33,14.33,14.33,14.33,12.32,10.31,10.31,10.31,10.31,9.17,8.04] },
+  'AL': { min:168.60, prov:'Alessandria',     rates:[25.25,25.25,25.25,25.25,21.05,16.86,16.86,16.86,16.86,15.59,14.33,14.33,14.33,14.33,14.33,12.32,10.31,10.31,10.31,10.31,9.18,8.04] },
+  'MI': { min:148.16, prov:'Milano',          rates:[22.45,22.45,22.45,22.45,18.69,14.94,14.94,14.94,14.94,13.80,12.67,12.67,12.67,12.67,12.67,10.79,8.91,8.91,8.91,8.91,7.96,6.99] },
+  'VA': { min:148.16, prov:'Varese',          rates:[22.45,22.45,22.45,22.45,18.69,14.94,14.94,14.94,14.94,13.80,12.67,12.67,12.67,12.67,12.67,10.79,8.91,8.91,8.91,8.91,7.96,6.99] },
+  'CO': { min:148.16, prov:'Como',            rates:[22.45,22.45,22.45,22.45,18.74,15.03,15.03,15.03,15.03,13.89,12.75,12.75,12.75,12.75,12.75,10.92,9.09,9.09,9.09,9.09,8.09,7.08] },
+  'BG': { min:148.16, prov:'Bergamo',         rates:[22.45,22.45,22.45,22.45,18.69,14.94,14.94,14.94,14.94,13.80,12.67,12.67,12.67,12.67,12.67,10.79,8.91,8.91,8.91,8.91,7.95,6.99] },
+  'BS': { min:171.31, prov:'Brescia',         rates:[26.56,26.56,26.56,26.56,21.93,17.30,17.30,17.30,17.30,16.07,14.85,14.85,14.85,14.85,14.85,12.71,10.57,10.57,10.57,10.57,9.35,8.12] },
+  'CR': { min:171.31, prov:'Cremona-Lodi',    rates:[26.56,26.56,26.56,26.56,21.93,17.30,17.30,17.30,17.30,16.07,14.85,14.85,14.85,14.85,14.85,12.71,10.57,10.57,10.57,10.57,9.35,8.12] },
+  'LO': { min:171.31, prov:'Cremona-Lodi',    rates:[26.56,26.56,26.56,26.56,21.93,17.30,17.30,17.30,17.30,16.07,14.85,14.85,14.85,14.85,14.85,12.71,10.57,10.57,10.57,10.57,9.35,8.12] },
+  'PV': { min:148.16, prov:'Pavia',           rates:[23.41,23.41,23.41,23.41,19.52,15.64,15.64,15.64,15.64,14.46,13.28,13.28,13.28,13.28,13.28,11.44,9.61,9.61,9.61,9.61,8.47,7.34] },
+  'NO': { min:148.16, prov:'Novara',          rates:[23.41,23.41,23.41,23.41,19.31,15.20,15.20,15.20,15.20,14.15,13.10,13.10,13.10,13.10,13.10,11.27,9.43,9.43,9.43,9.43,8.30,7.16] },
+  'VI': { min:185.37, prov:'Vicenza',         rates:[34.24,34.24,34.24,34.24,28.48,22.71,22.71,22.71,22.71,20.83,18.96,18.96,18.96,18.96,18.96,16.29,13.63,13.63,13.63,13.63,12.01,10.40] },
+  'VR': { min:185.37, prov:'Verona',          rates:[34.24,34.24,34.24,34.24,28.48,22.71,22.71,22.71,22.71,20.83,18.96,18.96,18.96,18.96,18.96,16.29,13.63,13.63,13.63,13.63,12.01,10.40] },
+  'BO': { min:197.99, prov:'Bologna',         rates:[37.50,37.50,37.50,37.50,31.18,24.86,24.86,24.86,24.86,22.81,20.77,20.77,20.77,20.77,20.77,17.84,14.91,14.91,14.91,14.91,13.14,11.37] },
+  'RE': { min:188.95, prov:'Reggio Emilia',   rates:[34.24,34.24,34.24,34.24,28.48,22.71,22.71,22.71,22.71,20.83,18.96,18.96,18.96,18.96,18.96,16.29,13.63,13.63,13.63,13.63,12.01,10.40] },
+  'PR': { min:188.95, prov:'Parma',           rates:[34.24,34.24,34.24,34.24,28.48,22.71,22.71,22.71,22.71,20.83,18.96,18.96,18.96,18.96,18.96,16.29,13.63,13.63,13.63,13.63,12.01,10.40] },
+};
+
+function getPrezzo_BS(prov, peso, lung, larg, alt) {
+  const p = prov.toUpperCase().trim();
+  const d = BS_DATA[p];
+  if (!d) return null;
+  // Peso tassabile: max(reale, volumetrico 250 kg/m³)
+  const vol = (lung * larg * alt) / 1000000;
+  const pesoTax = Math.max(peso, vol * 250);
+  // Trova scaglione
+  let idx = 0;
+  for (let i = BS_SCAGLIONI.length - 1; i >= 0; i--) {
+    if (pesoTax >= BS_SCAGLIONI[i]) { idx = i; break; }
+  }
+  const tariffa = d.rates[idx] || d.rates[d.rates.length - 1];
+  const prezzo = Math.max((pesoTax / 100) * tariffa, d.min);
+  return { prezzo: Math.round(prezzo * 100) / 100, cls: d.prov, pesoTax: Math.round(pesoTax) };
+}
 
 // Tempi di resa Prealpina 2026 (ore)
 const TEMPI_RESA = {"AG": {"ns": 96, "std": 120}, "AL": {"ns": 24, "std": 48}, "AN": {"ns": 24, "std": 48}, "AO": {"ns": 48, "std": 72}, "AP": {"ns": 24, "std": 72}, "AQ": {"ns": 48, "std": 72}, "AR": {"ns": 24, "std": 48}, "AT": {"ns": 24, "std": 48}, "AV": {"ns": 48, "std": 72}, "BA": {"ns": 48, "std": 72}, "BG": {"ns": 24, "std": 48}, "BI": {"ns": 24, "std": 48}, "BL": {"ns": 24, "std": 48}, "BN": {"ns": 48, "std": 72}, "BO": {"ns": 24, "std": 48}, "BR": {"ns": 72, "std": 96}, "BS": {"ns": 24, "std": 48}, "BT": {"ns": 48, "std": 72}, "BZ": {"ns": 48, "std": 72}, "CA": {"ns": 72, "std": 96}, "CB": {"ns": 48, "std": 72}, "CE": {"ns": 48, "std": 72}, "CH": {"ns": 48, "std": 72}, "CI": {"ns": 72, "std": 96}, "CL": {"ns": 96, "std": 120}, "CN": {"ns": 24, "std": 48}, "CO": {"ns": 24, "std": 48}, "CR": {"ns": 24, "std": 48}, "CS": {"ns": 72, "std": 96}, "CT": {"ns": 96, "std": 120}, "CZ": {"ns": 72, "std": 96}, "EN": {"ns": 96, "std": 120}, "FE": {"ns": 24, "std": 48}, "FG": {"ns": 72, "std": 96}, "FI": {"ns": 24, "std": 48}, "FM": {"ns": 24, "std": 48}, "FR": {"ns": 48, "std": 72}, "GE": {"ns": 24, "std": 72}, "GO": {"ns": 24, "std": 72}, "GR": {"ns": 48, "std": 72}, "IM": {"ns": 48, "std": 72}, "IS": {"ns": 48, "std": 72}, "KR": {"ns": 72, "std": 96}, "LC": {"ns": 24, "std": 48}, "LE": {"ns": 72, "std": 96}, "LI": {"ns": 24, "std": 72}, "LO": {"ns": 24, "std": 48}, "LT": {"ns": 48, "std": 72}, "LU": {"ns": 24, "std": 72}, "MB": {"ns": 24, "std": 48}, "MC": {"ns": 24, "std": 48}, "ME": {"ns": 96, "std": 120}, "MI": {"ns": 24, "std": 48}, "MN": {"ns": 24, "std": 48}, "MO": {"ns": 24, "std": 48}, "MS": {"ns": 24, "std": 72}, "MT": {"ns": 72, "std": 96}, "NA": {"ns": 48, "std": 72}, "NO": {"ns": 24, "std": 48}, "NU": {"ns": 72, "std": 96}, "OG": {"ns": 72, "std": 96}, "OR": {"ns": 72, "std": 96}, "OT": {"ns": 72, "std": 96}, "PA": {"ns": 96, "std": 120}, "PC": {"ns": 24, "std": 48}, "PD": {"ns": 24, "std": 48}, "PE": {"ns": 48, "std": 72}, "PG": {"ns": 24, "std": 72}, "PI": {"ns": 24, "std": 72}, "PN": {"ns": 24, "std": 48}, "PO": {"ns": 24, "std": 48}, "PR": {"ns": 24, "std": 48}, "PT": {"ns": 24, "std": 72}, "PU": {"ns": 24, "std": 48}, "PV": {"ns": 24, "std": 48}, "PZ": {"ns": 72, "std": 96}, "RA": {"ns": 24, "std": 72}, "RC": {"ns": 72, "std": 96}, "RE": {"ns": 24, "std": 48}, "RG": {"ns": 96, "std": 120}, "RI": {"ns": 48, "std": 72}, "RM": {"ns": 48, "std": 72}, "RN": {"ns": 24, "std": 48}, "RO": {"ns": 24, "std": 48}, "SA": {"ns": 48, "std": 72}, "SI": {"ns": 48, "std": 72}, "SO": {"ns": 48, "std": 72}, "SP": {"ns": 48, "std": 72}, "SR": {"ns": 96, "std": 120}, "SS": {"ns": 72, "std": 96}, "SV": {"ns": 48, "std": 72}, "TA": {"ns": 72, "std": 96}, "TE": {"ns": 48, "std": 72}, "TN": {"ns": 24, "std": 72}, "TO": {"ns": 24, "std": 48}, "TP": {"ns": 96, "std": 120}, "TR": {"ns": 48, "std": 72}, "TS": {"ns": 24, "std": 72}, "TV": {"ns": 24, "std": 48}, "UD": {"ns": 24, "std": 48}, "VA": {"ns": 24, "std": 48}, "VB": {"ns": 48, "std": 72}, "VC": {"ns": 24, "std": 48}, "VE": {"ns": 24, "std": 48}, "VI": {"ns": 24, "std": 48}, "VR": {"ns": 24, "std": 48}, "VS": {"ns": 72, "std": 96}, "VT": {"ns": 48, "std": 72}, "VV": {"ns": 72, "std": 96}};
@@ -888,7 +944,10 @@ function setServizio(s) {
 
 function setQty(n) {
   qtySelezionata = n;
-  document.querySelectorAll('.qty-btn').forEach((b, i) => b.classList.toggle('selected', i + 1 === n));
+  [1,2,3,4,5].forEach(i => {
+    const btn = document.getElementById(`qty-btn-${i}`);
+    if (btn) btn.classList.toggle('selected', i === n);
+  });
   document.getElementById('qty-custom').value = '';
   onInput();
 }
@@ -922,6 +981,7 @@ function onInput() {
   const bMed  = document.getElementById('cls-media');
   const bBrt  = document.getElementById('cls-brt');
   const bThl  = document.getElementById('cls-thl');
+  const bBs   = document.getElementById('cls-bs');
 
   bPre.textContent = clsPre;
   bMed.textContent = clsMed;
@@ -933,6 +993,11 @@ function onInput() {
   // THL badge: area
   const thlA = prov.length === 2 ? getTHLArea(prov) : null;
   bThl.textContent = thlA ? thlA.nome.split('-')[0] : '—';
+
+  // BS badge
+  const bsD = prov.length === 2 ? BS_DATA[prov.toUpperCase()] : null;
+  bBs.textContent = bsD ? bsD.prov.split(' ')[0] : 'N/D';
+  bBs.className = 'cls-badge ' + (bsD ? 'green' : 'gray');
 
   // Colori
   const clsColors = {
@@ -970,6 +1035,7 @@ function calcola() {
   const rMed = getPrezzo_Media(prov, peso, alt, lung, larg);
   const rBrt = getPrezzo_BRT(prov, peso, lung, larg);
   const rThl = getPrezzo_THL(prov, peso, lung, larg, alt);
+  const rBs  = getPrezzo_BS(prov, peso, lung, larg, alt);
 
   const area = (lung * larg) / 10000;
   const vol  = (lung * larg * alt) / 1000000;
@@ -979,6 +1045,7 @@ function calcola() {
     rMed ? rMed.prezzo * qty : null,
     rBrt ? rBrt.prezzo * qty : null,
     rThl ? rThl.prezzo * qty : null,
+    rBs  ? rBs.prezzo  * qty : null,
   ];
   const validi = prezzi.filter(v => v !== null);
   const minP = validi.length ? Math.min(...validi) : null;
@@ -1015,6 +1082,8 @@ function calcola() {
       detail = `Regione: <span>${res.cls}</span><br>Peso tassato: <span>${res.pesoTax} kg</span><br>Per bancale: <span>€ ${perBancale}</span>`;
     } else if (vettore === 'THL') {
       detail = `Area: <span>${res.cls}</span><br>Peso tassato: <span>${res.pesoTax} kg</span><br>Per bancale: <span>€ ${perBancale}</span>`;
+    } else if (vettore === 'BS PARTNERS') {
+      detail = `Provincia: <span>${res.cls}</span><br>Peso tassato: <span>${res.pesoTax} kg</span><br>Per bancale: <span>€ ${perBancale}</span>`;
     }
     return `<div class="prezzo-card ${isBest ? 'best' : ''}">
       <div class="prezzo-vettore">${vettore}</div>
@@ -1027,7 +1096,8 @@ function calcola() {
     card('PREALPINA',    rPre, prezzi[0]) +
     card('MEDIALOGISTICA', rMed, prezzi[1]) +
     card('BRT',         rBrt, prezzi[2]) +
-    card('THL',         rThl, prezzi[3]);
+    card('THL',         rThl, prezzi[3]) +
+    card('BS PARTNERS', rBs,  prezzi[4]);
 
   const el = document.getElementById('results');
   el.style.display = 'block';
