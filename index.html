@@ -198,6 +198,10 @@ main { max-width: 900px; margin: 0 auto; padding: 52px 24px 80px; }
           <span class="classifica-name">BS</span>
           <span class="cls-badge gray" id="cls-bs">—</span>
         </div>
+        <div class="classifica-item">
+          <span class="classifica-name">ASAP</span>
+          <span class="cls-badge gray" id="cls-asap">—</span>
+        </div>
       </div>
       <span class="area-info" id="area-info">Area base: 1.20 m²</span>
     </div>
@@ -238,8 +242,8 @@ main { max-width: 900px; margin: 0 auto; padding: 52px 24px 80px; }
   </div>
 
   <div class="disclaimer">
-    ⚠️ Prezzi indicativi basati su listini reali: Prealpina (mag/2026), MediaLogistica (2023), BRT Origgio (gen/2026), THL (2024), BS Partners (2026).
-    Non includono IVA, supplemento carburante, ZTL, isole minori o servizi accessori. Verificare sempre con il vettore prima della spedizione.
+    ⚠️ Prezzi indicativi basati su listini reali: Prealpina (mag/2026), MediaLogistica (2023), BRT Origgio (gen/2026), THL (2024), BS Partners (2026), ASAP Logistica.
+    Non includono IVA, supplemento carburante, ZTL o servizi accessori. Verificare sempre con il vettore prima della spedizione.
   </div>
 </div>
 </main>
@@ -612,6 +616,163 @@ function getPrezzo_BS(prov, peso, lung, larg, alt) {
   const tariffa = d.rates[idx] || d.rates[d.rates.length - 1];
   const prezzo = Math.max((pesoTax / 100) * tariffa, d.min);
   return { prezzo: Math.round(prezzo * 100) / 100, cls: d.prov, pesoTax: Math.round(pesoTax) };
+}
+
+// ══════════════════════════════════════════════
+// ASAP LOGISTICA — tariffa €/quintale (100 kg)
+// Fonte: ASAP_LOGISTICA.xls
+// Scaglioni: ≤2000 kg, 2001-5000, 5001-8000, >8000
+// Province: Nord + Centro Italia
+// Classi bancale (prezzi fissi per zona):
+//   S = 0-200 kg, M = 201-400 kg, B = ≥401 kg
+// Sovraprezzo disagiate: +€5/bancale
+// ══════════════════════════════════════════════
+
+// rates: [fino 20 q.li, da 20-50 q.li, da 50-80 q.li, oltre 80 q.li] (€/100kg)
+// fixed: prezzi fissi per bancale [S, M, B] per alcune aree
+const ASAP_DATA = {
+  // PIEMONTE
+  'AL': { rates:[12.30,12.15,12.00,11.90] },
+  'AT': { rates:[12.30,12.15,12.00,11.90] },
+  'BI': { rates:[12.30,12.15,12.00,11.90] },
+  'NO': { rates:[12.30,12.15,12.00,11.90] },
+  'VB': { rates:[12.30,12.15,12.00,11.90] },
+  'VC': { rates:[12.30,12.15,12.00,11.90] },
+  'TO': { rates:[11.30,11.20,11.00,10.95] },
+  'AO': { rates:[15.30,15.20,15.00,14.90] },
+  'CN': { rates:[15.30,15.20,15.00,14.90] },
+  // LOMBARDIA
+  'BG': { rates:[9.15,8.90,8.80,8.60] },
+  'CO': { rates:[9.10,8.90,8.80,8.60] },
+  'LC': { rates:[9.10,8.90,8.80,8.60] },
+  'LO': { rates:[9.10,8.90,8.80,8.60] },
+  'PV': { rates:[9.10,8.90,8.80,8.60] },
+  'VA': { rates:[9.10,8.90,8.80,8.60] },
+  'MB': { rates:[9.10,8.90,8.80,8.60] },
+  'BS': { rates:[9.75,9.60,9.50,9.45] },
+  'CR': { rates:[9.75,9.60,9.50,9.45] },
+  'MN': { rates:[11.55,11.40,11.20,11.00] },
+  'MI': { rates:[8.35,8.20,8.10,7.90] },
+  'SO': { rates:[12.05,11.95,11.80,11.65] },
+  // TRENTINO/ALTO ADIGE
+  'BZ': { rates:[12.90,11.80,10.80,8.90] },
+  'TN': { rates:[12.90,11.80,10.80,8.90] },
+  // VENETO
+  'BL': { rates:[12.75,11.65,10.70,8.80] },
+  'PD': { rates:[12.75,11.65,10.70,8.80] },
+  'RO': { rates:[12.75,11.65,10.70,8.80] },
+  'VI': { rates:[12.75,11.65,10.70,8.80] },
+  'VR': { rates:[12.75,11.65,10.70,8.80] },
+  'TV': { rates:[12.75,11.65,10.70,8.80] },
+  'VE': { rates:[12.75,11.65,10.70,8.80] },
+  // FRIULI
+  'GO': { rates:[14.245,13.30,12.15,10.30] },
+  'TS': { rates:[14.245,13.30,12.15,10.30] },
+  'UD': { rates:[14.245,13.30,12.15,10.30] },
+  'PN': { rates:[14.245,13.30,12.15,10.30] },
+  // TOSCANA
+  'PO': { rates:[12.00,11.45,9.60,9.10] },
+  'FI': { rates:[12.00,11.45,9.60,9.10] },
+  'AR': { rates:[12.50,11.495,9.60,9.10] },
+  'GR': { rates:[12.50,11.495,9.60,9.10] },
+  'LI': { rates:[12.50,11.495,9.60,9.10] },
+  'LU': { rates:[12.50,11.495,9.60,9.10] },
+  'MS': { rates:[12.50,11.495,9.60,9.10] },
+  'PI': { rates:[12.50,11.495,9.60,9.10] },
+  'PT': { rates:[12.50,11.495,9.60,9.10] },
+  'SI': { rates:[12.50,11.495,9.60,9.10] },
+  // EMILIA ROMAGNA
+  'RN': { rates:[12.50,11.75,10.25,8.70] },
+  'FE': { rates:[12.50,11.75,10.25,8.70] },
+  'FC': { rates:[12.50,11.75,10.25,8.70] },
+  'RA': { rates:[12.50,11.75,10.25,8.70] },
+  'BO': { rates:[11.60,10.945,9.515,7.975] },
+  'MO': { rates:[11.90,11.30,10.25,8.70] },
+  'PR': { rates:[11.90,11.30,10.25,8.70] },
+  'PC': { rates:[11.90,11.30,10.25,8.70] },
+  'RE': { rates:[11.90,11.30,10.25,8.70] },
+  // MARCHE
+  'AN': { rates:[15.895,13.00,9.25,8.35] },
+  'FM': { rates:[15.895,13.00,9.25,8.35] },
+  'MC': { rates:[15.895,13.00,9.25,8.35] },
+  'PU': { rates:[15.895,13.00,9.25,8.35] },
+  'AP': { rates:[15.895,14.25,11.05,9.60] },
+};
+
+// Prezzi fissi per bancale (alcune zone — da riga 10-14 del XLS)
+// Lombardia: S=18.55, M=26.6, B=41.7
+// Emilia: S=28.95, M=34.75, B=55.6
+// Ferrara: S=31.25, M=44.0, B=57.9
+// Toscana: S=34.75, M=40.55, B=57.9
+// Veneto: S=26.6, M=34.75, B=49.8
+// Piemonte: S=6.95, M=15.05, B=28.9
+const ASAP_FIXED = {
+  LOMBARDIA: { S:18.55, M:26.60, B:41.70 },
+  EMILIA:    { S:28.95, M:34.75, B:55.60 },
+  FERRARA:   { S:31.25, M:44.00, B:57.90 },
+  TOSCANA:   { S:34.75, M:40.55, B:57.90 },
+  VENETO:    { S:26.60, M:34.75, B:49.80 },
+  PIEMONTE:  { S:6.95,  M:15.05, B:28.90 },
+};
+const ASAP_ZONA = {
+  'MI':'LOMBARDIA','VA':'LOMBARDIA','CO':'LOMBARDIA','LC':'LOMBARDIA','LO':'LOMBARDIA',
+  'PV':'LOMBARDIA','MB':'LOMBARDIA','BG':'LOMBARDIA','BS':'LOMBARDIA','CR':'LOMBARDIA',
+  'MN':'LOMBARDIA','SO':'LOMBARDIA',
+  'BO':'EMILIA','MO':'EMILIA','PR':'EMILIA','PC':'EMILIA','RE':'EMILIA',
+  'RN':'EMILIA','FC':'EMILIA','RA':'EMILIA',
+  'FE':'FERRARA',
+  'FI':'TOSCANA','PO':'TOSCANA','AR':'TOSCANA','GR':'TOSCANA','LI':'TOSCANA',
+  'LU':'TOSCANA','MS':'TOSCANA','PI':'TOSCANA','PT':'TOSCANA','SI':'TOSCANA',
+  'BL':'VENETO','PD':'VENETO','RO':'VENETO','VI':'VENETO','VR':'VENETO',
+  'TV':'VENETO','VE':'VENETO',
+  'TO':'PIEMONTE','AL':'PIEMONTE','AT':'PIEMONTE','BI':'PIEMONTE',
+  'NO':'PIEMONTE','VB':'PIEMONTE','VC':'PIEMONTE','CN':'PIEMONTE','AO':'PIEMONTE',
+};
+
+function getASAPScaglione(pesoKg) {
+  // Scaglioni in quintali: ≤20q=2000kg, 20-50q=5000kg, 50-80q=8000kg, >80q
+  if (pesoKg <= 2000) return 0;
+  if (pesoKg <= 5000) return 1;
+  if (pesoKg <= 8000) return 2;
+  return 3;
+}
+
+function getPrezzo_ASAP(prov, peso, lung, larg, alt, isDisagiata) {
+  const p = prov.toUpperCase().trim();
+  const d = ASAP_DATA[p];
+  if (!d) return null;
+
+  // Peso tassabile: max(reale, volumetrico 333 kg/m³ standard groupage)
+  const vol = (lung * larg * alt) / 1000000;
+  const pesoTax = Math.max(peso, vol * 333);
+
+  // Calcola prezzo da tariffa a peso
+  const scag = getASAPScaglione(pesoTax);
+  const tariffa = d.rates[scag]; // €/100 kg
+  let prezzo = (pesoTax / 100) * tariffa;
+
+  // Confronta con prezzo fisso per bancale (se zona prevede fissi)
+  const zona = ASAP_ZONA[p];
+  let clsBancale = '';
+  if (zona && ASAP_FIXED[zona]) {
+    const fissi = ASAP_FIXED[zona];
+    let prezzoFisso;
+    if (peso <= 200)      { prezzoFisso = fissi.S; clsBancale = 'S'; }
+    else if (peso <= 400) { prezzoFisso = fissi.M; clsBancale = 'M'; }
+    else                  { prezzoFisso = fissi.B; clsBancale = 'B'; }
+    // Usa il maggiore tra tariffa a peso e prezzo fisso
+    prezzo = Math.max(prezzo, prezzoFisso);
+  }
+
+  // Sovraprezzo disagiata
+  if (isDisagiata) prezzo += 5;
+
+  return {
+    prezzo: Math.round(prezzo * 100) / 100,
+    cls: zona || p,
+    pesoTax: Math.round(pesoTax),
+    clsBancale
+  };
 }
 
 // Tempi di resa Prealpina 2026 (ore)
@@ -999,6 +1160,12 @@ function onInput() {
   bBs.textContent = bsD ? bsD.prov.split(' ')[0] : 'N/D';
   bBs.className = 'cls-badge ' + (bsD ? 'green' : 'gray');
 
+  // ASAP badge
+  const bAsap = document.getElementById('cls-asap');
+  const asapD = prov.length === 2 ? ASAP_DATA[prov.toUpperCase()] : null;
+  bAsap.textContent = asapD ? (ASAP_ZONA[prov.toUpperCase()] || prov.toUpperCase()) : 'N/D';
+  bAsap.className = 'cls-badge ' + (asapD ? 'orange' : 'gray');
+
   // Colori
   const clsColors = {
     'Mini':'green','Quarter':'green','Half':'orange','Medium':'orange',
@@ -1036,6 +1203,7 @@ function calcola() {
   const rBrt = getPrezzo_BRT(prov, peso, lung, larg);
   const rThl = getPrezzo_THL(prov, peso, lung, larg, alt);
   const rBs  = getPrezzo_BS(prov, peso, lung, larg, alt);
+  const rAsap = getPrezzo_ASAP(prov, peso, lung, larg, alt, isDisagiata);
 
   const area = (lung * larg) / 10000;
   const vol  = (lung * larg * alt) / 1000000;
@@ -1046,6 +1214,7 @@ function calcola() {
     rBrt ? rBrt.prezzo * qty : null,
     rThl ? rThl.prezzo * qty : null,
     rBs  ? rBs.prezzo  * qty : null,
+    rAsap ? rAsap.prezzo * qty : null,
   ];
   const validi = prezzi.filter(v => v !== null);
   const minP = validi.length ? Math.min(...validi) : null;
@@ -1084,6 +1253,8 @@ function calcola() {
       detail = `Area: <span>${res.cls}</span><br>Peso tassato: <span>${res.pesoTax} kg</span><br>Per bancale: <span>€ ${perBancale}</span>`;
     } else if (vettore === 'BS PARTNERS') {
       detail = `Provincia: <span>${res.cls}</span><br>Peso tassato: <span>${res.pesoTax} kg</span><br>Per bancale: <span>€ ${perBancale}</span>`;
+    } else if (vettore === 'ASAP LOGISTICA') {
+      detail = `Zona: <span>${res.cls}</span><br>Classe: <span>${res.clsBancale || '—'}</span><br>Peso tassato: <span>${res.pesoTax} kg</span><br>Per bancale: <span>€ ${perBancale}</span>`;
     }
     return `<div class="prezzo-card ${isBest ? 'best' : ''}">
       <div class="prezzo-vettore">${vettore}</div>
@@ -1097,7 +1268,8 @@ function calcola() {
     card('MEDIALOGISTICA', rMed, prezzi[1]) +
     card('BRT',         rBrt, prezzi[2]) +
     card('THL',         rThl, prezzi[3]) +
-    card('BS PARTNERS', rBs,  prezzi[4]);
+    card('BS PARTNERS', rBs,  prezzi[4]) +
+    card('ASAP LOGISTICA', rAsap, prezzi[5]);
 
   const el = document.getElementById('results');
   el.style.display = 'block';
