@@ -202,6 +202,10 @@ main { max-width: 900px; margin: 0 auto; padding: 52px 24px 80px; }
           <span class="classifica-name">ASAP</span>
           <span class="cls-badge gray" id="cls-asap">—</span>
         </div>
+        <div class="classifica-item">
+          <span class="classifica-name">SUSA</span>
+          <span class="cls-badge gray" id="cls-susa">—</span>
+        </div>
       </div>
       <span class="area-info" id="area-info">Area base: 1.20 m²</span>
     </div>
@@ -242,7 +246,7 @@ main { max-width: 900px; margin: 0 auto; padding: 52px 24px 80px; }
   </div>
 
   <div class="disclaimer">
-    ⚠️ Prezzi indicativi basati su listini reali: Prealpina (mag/2026), MediaLogistica (2023), BRT Origgio (gen/2026), THL (2024), BS Partners (2026), ASAP Logistica.
+    ⚠️ Prezzi indicativi basati su listini reali: Prealpina (mag/2026), MediaLogistica (2023), BRT Origgio (gen/2026), THL (2024), BS Partners (2026), ASAP Logistica, SUSA (apr/2026).
     Non includono IVA, supplemento carburante, ZTL o servizi accessori. Verificare sempre con il vettore prima della spedizione.
   </div>
 </div>
@@ -775,6 +779,202 @@ function getPrezzo_ASAP(prov, peso, lung, larg, alt, isDisagiata) {
   };
 }
 
+// ══════════════════════════════════════════════
+// SUSA TRASPORTI — tariffa €/100 kg a 4 scaglioni
+// Fonte: Offerta 90 019636 del 28/04/2026
+// Scaglioni: ≤300 kg, 301-700, 701-1000, >1000
+// Volumetrico: 300 kg/m³ | Minimo: 100 kg
+// Diritto fisso: €1.75/spedizione
+// Tempi di resa (colonna VA): 2gg Nord/Centro, 4gg Calabria, 5gg Sicilia/Sardegna
+// Province con tariffa maggiorata rispetto alla regione base
+// ══════════════════════════════════════════════
+
+// rates: [≤300, ≤700, ≤1000, >1000] (€/100 kg)
+// Mappa provincia -> tariffa (regione base o fascia specifica)
+const SUSA_PROV = {
+  // LOMBARDIA base 10.670 / 10.460 / 9.820 / 9.240
+  // Lecco, Mantova, Pavia: 12.540 / 12.290 / 11.540 / 10.850
+  // Sondrio: 13.060 / 12.800 / 12.020 / 11.290
+  'MI':[10.670,10.460,9.820,9.240],'VA':[10.670,10.460,9.820,9.240],
+  'CO':[10.670,10.460,9.820,9.240],'MB':[10.670,10.460,9.820,9.240],
+  'BG':[10.670,10.460,9.820,9.240],'BS':[10.670,10.460,9.820,9.240],
+  'CR':[10.670,10.460,9.820,9.240],'LO':[10.670,10.460,9.820,9.240],
+  'LC':[12.540,12.290,11.540,10.850],'MN':[12.540,12.290,11.540,10.850],
+  'PV':[12.540,12.290,11.540,10.850],'SO':[13.060,12.800,12.020,11.290],
+  // PIEMONTE base 11.780 / 11.560 / 11.000 / 10.400
+  // Biella, Cuneo, Verbania: 13.840 / 13.570 / 12.910 / 12.210
+  'TO':[11.780,11.560,11.000,10.400],'AL':[11.780,11.560,11.000,10.400],
+  'AT':[11.780,11.560,11.000,10.400],'NO':[11.780,11.560,11.000,10.400],
+  'VC':[11.780,11.560,11.000,10.400],
+  'BI':[13.840,13.570,12.910,12.210],'CN':[13.840,13.570,12.910,12.210],
+  'VB':[13.840,13.570,12.910,12.210],
+  // VALLE D'AOSTA 13.030 / 12.770 / 12.110 / 11.440
+  'AO':[13.030,12.770,12.110,11.440],
+  // VENETO base 12.150 / 11.910 / 11.550 / 11.000
+  // Belluno, Rovigo: 14.580 / 14.290 / 13.860 / 13.190
+  'VR':[12.150,11.910,11.550,11.000],'VI':[12.150,11.910,11.550,11.000],
+  'PD':[12.150,11.910,11.550,11.000],'VE':[12.150,11.910,11.550,11.000],
+  'TV':[12.150,11.910,11.550,11.000],
+  'BL':[14.580,14.290,13.860,13.190],'RO':[14.580,14.290,13.860,13.190],
+  // TRENTINO A.A. 13.520 / 13.260 / 12.990 / 12.480
+  // Bolzano: 16.230 / 15.910 / 15.580 / 14.980
+  'TN':[13.520,13.260,12.990,12.480],'BZ':[16.230,15.910,15.580,14.980],
+  // FRIULI V.G. base 13.520 / 13.260 / 12.990 / 12.480
+  // Gorizia, Trieste: 16.230 / 15.910 / 15.580 / 14.980
+  'UD':[13.520,13.260,12.990,12.480],'PN':[13.520,13.260,12.990,12.480],
+  'GO':[16.230,15.910,15.580,14.980],'TS':[16.230,15.910,15.580,14.980],
+  // LIGURIA base 14.260 / 13.980 / 13.340 / 12.630
+  // Imperia: 19.250 / 18.870 / 18.010 / 17.050
+  // La Spezia, Savona: 17.110 / 16.770 / 16.000 / 15.160
+  'GE':[14.260,13.980,13.340,12.630],
+  'IM':[19.250,18.870,18.010,17.050],
+  'SP':[17.110,16.770,16.000,15.160],'SV':[17.110,16.770,16.000,15.160],
+  // EMILIA ROMAGNA base 12.370 / 12.130 / 11.670 / 11.080
+  // Ravenna, Rimini: 14.080 / 13.790 / 13.280 / 12.600
+  'BO':[12.370,12.130,11.670,11.080],'MO':[12.370,12.130,11.670,11.080],
+  'RE':[12.370,12.130,11.670,11.080],'PR':[12.370,12.130,11.670,11.080],
+  'PC':[12.370,12.130,11.670,11.080],'FE':[12.370,12.130,11.670,11.080],
+  'FC':[12.370,12.130,11.670,11.080],
+  'RA':[14.080,13.790,13.280,12.600],'RN':[14.080,13.790,13.280,12.600],
+  // TOSCANA base 14.300 / 14.020 / 13.730 / 13.360
+  // Arezzo, Grosseto, Massa, Siena: 17.160 / 16.810 / 16.480 / 16.030
+  'FI':[14.300,14.020,13.730,13.360],'LI':[14.300,14.020,13.730,13.360],
+  'LU':[14.300,14.020,13.730,13.360],'PI':[14.300,14.020,13.730,13.360],
+  'PT':[14.300,14.020,13.730,13.360],'PO':[14.300,14.020,13.730,13.360],
+  'AR':[17.160,16.810,16.480,16.030],'GR':[17.160,16.810,16.480,16.030],
+  'MS':[17.160,16.810,16.480,16.030],'SI':[17.160,16.810,16.480,16.030],
+  // MARCHE base 14.300 / 14.020 / 13.730 / 13.360
+  // Ascoli Piceno, Fermo: 17.160 / 16.810 / 16.480 / 16.030
+  'AN':[14.300,14.020,13.730,13.360],'MC':[14.300,14.020,13.730,13.360],
+  'PU':[14.300,14.020,13.730,13.360],
+  'AP':[17.160,16.810,16.480,16.030],'FM':[17.160,16.810,16.480,16.030],
+  // UMBRIA base 14.300 / 14.020 / 13.730 / 13.360
+  // Terni: 17.160 / 16.810 / 16.480 / 16.030
+  'PG':[14.300,14.020,13.730,13.360],
+  'TR':[17.160,16.810,16.480,16.030],
+  // LAZIO base 14.100 / 13.820 / 13.540 / 13.150
+  // Frosinone, Rieti, Viterbo: 16.920 / 16.580 / 16.250 / 15.780
+  'RM':[14.100,13.820,13.540,13.150],'LT':[14.100,13.820,13.540,13.150],
+  'FR':[16.920,16.580,16.250,15.780],'RI':[16.920,16.580,16.250,15.780],
+  'VT':[16.920,16.580,16.250,15.780],
+  // ABRUZZO base 15.010 / 14.720 / 14.430 / 14.130
+  // L'Aquila: 18.020 / 17.660 / 17.300 / 16.960
+  'PE':[15.010,14.720,14.430,14.130],'CH':[15.010,14.720,14.430,14.130],
+  'TE':[15.010,14.720,14.430,14.130],
+  'AQ':[18.020,17.660,17.300,16.960],
+  // MOLISE base 16.380 / 16.050 / 15.730 / 15.410
+  // Isernia: 19.650 / 19.260 / 18.870 / 18.500
+  'CB':[16.380,16.050,15.730,15.410],
+  'IS':[19.650,19.260,18.870,18.500],
+  // CAMPANIA base 16.380 / 16.050 / 15.730 / 15.410
+  // Avellino, Benevento, Salerno: 19.650 / 19.260 / 18.870 / 18.500
+  'NA':[16.380,16.050,15.730,15.410],'CE':[16.380,16.050,15.730,15.410],
+  'AV':[19.650,19.260,18.870,18.500],'BN':[19.650,19.260,18.870,18.500],
+  'SA':[19.650,19.260,18.870,18.500],
+  // PUGLIA base 17.100 / 16.760 / 16.430 / 16.100
+  // Foggia: 20.520 / 20.120 / 19.710 / 19.320
+  // Lecce: 21.380 / 20.950 / 20.530 / 20.130
+  'BA':[17.100,16.760,16.430,16.100],'BT':[17.100,16.760,16.430,16.100],
+  'BR':[17.100,16.760,16.430,16.100],'TA':[17.100,16.760,16.430,16.100],
+  'FG':[20.520,20.120,19.710,19.320],
+  'LE':[21.380,20.950,20.530,20.130],
+  // BASILICATA 19.150 / 18.770 / 18.390 / 18.020
+  'PZ':[19.150,18.770,18.390,18.020],'MT':[19.150,18.770,18.390,18.020],
+  // CALABRIA base 19.150 / 18.770 / 18.390 / 18.020
+  // Crotone, Reggio Cal., Vibo: 22.980 / 22.510 / 22.060 / 21.630
+  'CS':[19.150,18.770,18.390,18.020],'CZ':[19.150,18.770,18.390,18.020],
+  'KR':[22.980,22.510,22.060,21.630],'RC':[22.980,22.510,22.060,21.630],
+  'VV':[22.980,22.510,22.060,21.630],
+  // SICILIA base 26.850 / 26.320 / 25.790 / 25.270
+  // Agrigento, Caltanissetta, Enna, Trapani: 32.220 / 31.580 / 30.950 / 30.330
+  'PA':[26.850,26.320,25.790,25.270],'CT':[26.850,26.320,25.790,25.270],
+  'ME':[26.850,26.320,25.790,25.270],'SR':[26.850,26.320,25.790,25.270],
+  'RG':[26.850,26.320,25.790,25.270],'TP':[32.220,31.580,30.950,30.330],
+  'AG':[32.220,31.580,30.950,30.330],'CL':[32.220,31.580,30.950,30.330],
+  'EN':[32.220,31.580,30.950,30.330],
+  // SARDEGNA base 21.700 / 21.270 / 20.850 / 20.430
+  // Nuoro, Oristano: 26.040 / 25.520 / 25.010 / 24.510
+  'CA':[21.700,21.270,20.850,20.430],'SS':[21.700,21.270,20.850,20.430],
+  'OT':[21.700,21.270,20.850,20.430],'VS':[21.700,21.270,20.850,20.430],
+  'CI':[21.700,21.270,20.850,20.430],'SU':[21.700,21.270,20.850,20.430],
+  'NU':[26.040,25.520,25.010,24.510],'OR':[26.040,25.520,25.010,24.510],
+  'OG':[26.040,25.520,25.010,24.510],
+};
+
+// Tempi di resa SUSA da colonna VA (giorni lavorativi)
+const SUSA_RESA_REGIONE = {
+  LOMBARDIA:2,PIEMONTE:2,'VALLE D\'AOSTA':2,VENETO:2,'TRENTINO A.A.':2,
+  'FRIULI V.G.':2,LIGURIA:2,'EMILIA R.':2,TOSCANA:2,MARCHE:2,UMBRIA:2,
+  LAZIO:2,ABRUZZO:2,MOLISE:2,CAMPANIA:2,PUGLIA:2,BASILICATA:2,
+  CALABRIA:4,SICILIA:5,SARDEGNA:5
+};
+const SUSA_PROV_REGIONE = {
+  'MI':'LOMBARDIA','VA':'LOMBARDIA','CO':'LOMBARDIA','MB':'LOMBARDIA',
+  'BG':'LOMBARDIA','BS':'LOMBARDIA','CR':'LOMBARDIA','LO':'LOMBARDIA',
+  'LC':'LOMBARDIA','MN':'LOMBARDIA','PV':'LOMBARDIA','SO':'LOMBARDIA',
+  'TO':'PIEMONTE','AL':'PIEMONTE','AT':'PIEMONTE','NO':'PIEMONTE',
+  'VC':'PIEMONTE','BI':'PIEMONTE','CN':'PIEMONTE','VB':'PIEMONTE',
+  'AO':"VALLE D'AOSTA",
+  'VR':'VENETO','VI':'VENETO','PD':'VENETO','VE':'VENETO',
+  'TV':'VENETO','BL':'VENETO','RO':'VENETO',
+  'TN':'TRENTINO A.A.','BZ':'TRENTINO A.A.',
+  'UD':'FRIULI V.G.','PN':'FRIULI V.G.','GO':'FRIULI V.G.','TS':'FRIULI V.G.',
+  'GE':'LIGURIA','IM':'LIGURIA','SP':'LIGURIA','SV':'LIGURIA',
+  'BO':'EMILIA R.','MO':'EMILIA R.','RE':'EMILIA R.','PR':'EMILIA R.',
+  'PC':'EMILIA R.','FE':'EMILIA R.','FC':'EMILIA R.','RA':'EMILIA R.','RN':'EMILIA R.',
+  'FI':'TOSCANA','LI':'TOSCANA','LU':'TOSCANA','PI':'TOSCANA','PT':'TOSCANA',
+  'PO':'TOSCANA','AR':'TOSCANA','GR':'TOSCANA','MS':'TOSCANA','SI':'TOSCANA',
+  'AN':'MARCHE','MC':'MARCHE','PU':'MARCHE','AP':'MARCHE','FM':'MARCHE',
+  'PG':'UMBRIA','TR':'UMBRIA',
+  'RM':'LAZIO','LT':'LAZIO','FR':'LAZIO','RI':'LAZIO','VT':'LAZIO',
+  'PE':'ABRUZZO','CH':'ABRUZZO','TE':'ABRUZZO','AQ':'ABRUZZO',
+  'CB':'MOLISE','IS':'MOLISE',
+  'NA':'CAMPANIA','CE':'CAMPANIA','AV':'CAMPANIA','BN':'CAMPANIA','SA':'CAMPANIA',
+  'BA':'PUGLIA','BT':'PUGLIA','BR':'PUGLIA','TA':'PUGLIA','FG':'PUGLIA','LE':'PUGLIA',
+  'PZ':'BASILICATA','MT':'BASILICATA',
+  'CS':'CALABRIA','CZ':'CALABRIA','KR':'CALABRIA','RC':'CALABRIA','VV':'CALABRIA',
+  'PA':'SICILIA','CT':'SICILIA','ME':'SICILIA','SR':'SICILIA','RG':'SICILIA',
+  'TP':'SICILIA','AG':'SICILIA','CL':'SICILIA','EN':'SICILIA',
+  'CA':'SARDEGNA','SS':'SARDEGNA','OT':'SARDEGNA','VS':'SARDEGNA',
+  'CI':'SARDEGNA','SU':'SARDEGNA','NU':'SARDEGNA','OR':'SARDEGNA','OG':'SARDEGNA',
+};
+
+function getSUSAScaglione(pesoTax) {
+  if (pesoTax <= 300) return 0;
+  if (pesoTax <= 700) return 1;
+  if (pesoTax <= 1000) return 2;
+  return 3;
+}
+
+function getPrezzo_SUSA(prov, peso, lung, larg, alt) {
+  const p = prov.toUpperCase().trim();
+  const rates = SUSA_PROV[p];
+  if (!rates) return null;
+
+  // Peso tassabile: max(reale, volumetrico 300 kg/m³), minimo 100 kg
+  const vol = (lung * larg * alt) / 1000000;
+  let pesoTax = Math.max(peso, vol * 300, 100);
+  // Arrotondamento a 100 kg
+  pesoTax = Math.ceil(pesoTax / 100) * 100;
+
+  const scag = getSUSAScaglione(pesoTax);
+  const tariffa = rates[scag];
+  let prezzo = (pesoTax / 100) * tariffa;
+
+  // Diritto fisso €1.75
+  prezzo += 1.75;
+
+  const regione = SUSA_PROV_REGIONE[p] || p;
+  const resa = SUSA_RESA_REGIONE[regione] || 2;
+
+  return {
+    prezzo: Math.round(prezzo * 100) / 100,
+    cls: regione,
+    pesoTax,
+    resa
+  };
+}
+
 // Tempi di resa Prealpina 2026 (ore)
 const TEMPI_RESA = {"AG": {"ns": 96, "std": 120}, "AL": {"ns": 24, "std": 48}, "AN": {"ns": 24, "std": 48}, "AO": {"ns": 48, "std": 72}, "AP": {"ns": 24, "std": 72}, "AQ": {"ns": 48, "std": 72}, "AR": {"ns": 24, "std": 48}, "AT": {"ns": 24, "std": 48}, "AV": {"ns": 48, "std": 72}, "BA": {"ns": 48, "std": 72}, "BG": {"ns": 24, "std": 48}, "BI": {"ns": 24, "std": 48}, "BL": {"ns": 24, "std": 48}, "BN": {"ns": 48, "std": 72}, "BO": {"ns": 24, "std": 48}, "BR": {"ns": 72, "std": 96}, "BS": {"ns": 24, "std": 48}, "BT": {"ns": 48, "std": 72}, "BZ": {"ns": 48, "std": 72}, "CA": {"ns": 72, "std": 96}, "CB": {"ns": 48, "std": 72}, "CE": {"ns": 48, "std": 72}, "CH": {"ns": 48, "std": 72}, "CI": {"ns": 72, "std": 96}, "CL": {"ns": 96, "std": 120}, "CN": {"ns": 24, "std": 48}, "CO": {"ns": 24, "std": 48}, "CR": {"ns": 24, "std": 48}, "CS": {"ns": 72, "std": 96}, "CT": {"ns": 96, "std": 120}, "CZ": {"ns": 72, "std": 96}, "EN": {"ns": 96, "std": 120}, "FE": {"ns": 24, "std": 48}, "FG": {"ns": 72, "std": 96}, "FI": {"ns": 24, "std": 48}, "FM": {"ns": 24, "std": 48}, "FR": {"ns": 48, "std": 72}, "GE": {"ns": 24, "std": 72}, "GO": {"ns": 24, "std": 72}, "GR": {"ns": 48, "std": 72}, "IM": {"ns": 48, "std": 72}, "IS": {"ns": 48, "std": 72}, "KR": {"ns": 72, "std": 96}, "LC": {"ns": 24, "std": 48}, "LE": {"ns": 72, "std": 96}, "LI": {"ns": 24, "std": 72}, "LO": {"ns": 24, "std": 48}, "LT": {"ns": 48, "std": 72}, "LU": {"ns": 24, "std": 72}, "MB": {"ns": 24, "std": 48}, "MC": {"ns": 24, "std": 48}, "ME": {"ns": 96, "std": 120}, "MI": {"ns": 24, "std": 48}, "MN": {"ns": 24, "std": 48}, "MO": {"ns": 24, "std": 48}, "MS": {"ns": 24, "std": 72}, "MT": {"ns": 72, "std": 96}, "NA": {"ns": 48, "std": 72}, "NO": {"ns": 24, "std": 48}, "NU": {"ns": 72, "std": 96}, "OG": {"ns": 72, "std": 96}, "OR": {"ns": 72, "std": 96}, "OT": {"ns": 72, "std": 96}, "PA": {"ns": 96, "std": 120}, "PC": {"ns": 24, "std": 48}, "PD": {"ns": 24, "std": 48}, "PE": {"ns": 48, "std": 72}, "PG": {"ns": 24, "std": 72}, "PI": {"ns": 24, "std": 72}, "PN": {"ns": 24, "std": 48}, "PO": {"ns": 24, "std": 48}, "PR": {"ns": 24, "std": 48}, "PT": {"ns": 24, "std": 72}, "PU": {"ns": 24, "std": 48}, "PV": {"ns": 24, "std": 48}, "PZ": {"ns": 72, "std": 96}, "RA": {"ns": 24, "std": 72}, "RC": {"ns": 72, "std": 96}, "RE": {"ns": 24, "std": 48}, "RG": {"ns": 96, "std": 120}, "RI": {"ns": 48, "std": 72}, "RM": {"ns": 48, "std": 72}, "RN": {"ns": 24, "std": 48}, "RO": {"ns": 24, "std": 48}, "SA": {"ns": 48, "std": 72}, "SI": {"ns": 48, "std": 72}, "SO": {"ns": 48, "std": 72}, "SP": {"ns": 48, "std": 72}, "SR": {"ns": 96, "std": 120}, "SS": {"ns": 72, "std": 96}, "SV": {"ns": 48, "std": 72}, "TA": {"ns": 72, "std": 96}, "TE": {"ns": 48, "std": 72}, "TN": {"ns": 24, "std": 72}, "TO": {"ns": 24, "std": 48}, "TP": {"ns": 96, "std": 120}, "TR": {"ns": 48, "std": 72}, "TS": {"ns": 24, "std": 72}, "TV": {"ns": 24, "std": 48}, "UD": {"ns": 24, "std": 48}, "VA": {"ns": 24, "std": 48}, "VB": {"ns": 48, "std": 72}, "VC": {"ns": 24, "std": 48}, "VE": {"ns": 24, "std": 48}, "VI": {"ns": 24, "std": 48}, "VR": {"ns": 24, "std": 48}, "VS": {"ns": 72, "std": 96}, "VT": {"ns": 48, "std": 72}, "VV": {"ns": 72, "std": 96}};
 
@@ -1166,6 +1366,12 @@ function onInput() {
   bAsap.textContent = asapD ? (ASAP_ZONA[prov.toUpperCase()] || prov.toUpperCase()) : 'N/D';
   bAsap.className = 'cls-badge ' + (asapD ? 'orange' : 'gray');
 
+  // SUSA badge
+  const bSusa = document.getElementById('cls-susa');
+  const susaReg = prov.length === 2 ? SUSA_PROV_REGIONE[prov.toUpperCase()] : null;
+  bSusa.textContent = susaReg ? susaReg.split(' ')[0] : 'N/D';
+  bSusa.className = 'cls-badge ' + (susaReg ? 'blue' : 'gray');
+
   // Colori
   const clsColors = {
     'Mini':'green','Quarter':'green','Half':'orange','Medium':'orange',
@@ -1204,6 +1410,7 @@ function calcola() {
   const rThl = getPrezzo_THL(prov, peso, lung, larg, alt);
   const rBs  = getPrezzo_BS(prov, peso, lung, larg, alt);
   const rAsap = getPrezzo_ASAP(prov, peso, lung, larg, alt, isDisagiata);
+  const rSusa = getPrezzo_SUSA(prov, peso, lung, larg, alt);
 
   const area = (lung * larg) / 10000;
   const vol  = (lung * larg * alt) / 1000000;
@@ -1215,6 +1422,7 @@ function calcola() {
     rThl ? rThl.prezzo * qty : null,
     rBs  ? rBs.prezzo  * qty : null,
     rAsap ? rAsap.prezzo * qty : null,
+    rSusa ? rSusa.prezzo * qty : null,
   ];
   const validi = prezzi.filter(v => v !== null);
   const minP = validi.length ? Math.min(...validi) : null;
@@ -1255,6 +1463,8 @@ function calcola() {
       detail = `Provincia: <span>${res.cls}</span><br>Peso tassato: <span>${res.pesoTax} kg</span><br>Per bancale: <span>€ ${perBancale}</span>`;
     } else if (vettore === 'ASAP LOGISTICA') {
       detail = `Zona: <span>${res.cls}</span><br>Classe: <span>${res.clsBancale || '—'}</span><br>Peso tassato: <span>${res.pesoTax} kg</span><br>Per bancale: <span>€ ${perBancale}</span>`;
+    } else if (vettore === 'SUSA') {
+      detail = `Regione: <span>${res.cls}</span><br>Peso tassato: <span>${res.pesoTax} kg</span><br>Resa: <span>${res.resa} gg lav.</span><br>Per bancale: <span>€ ${perBancale}</span>`;
     }
     return `<div class="prezzo-card ${isBest ? 'best' : ''}">
       <div class="prezzo-vettore">${vettore}</div>
@@ -1269,7 +1479,8 @@ function calcola() {
     card('BRT',         rBrt, prezzi[2]) +
     card('THL',         rThl, prezzi[3]) +
     card('BS PARTNERS', rBs,  prezzi[4]) +
-    card('ASAP LOGISTICA', rAsap, prezzi[5]);
+    card('ASAP LOGISTICA', rAsap, prezzi[5]) +
+    card('SUSA', rSusa, prezzi[6]);
 
   const el = document.getElementById('results');
   el.style.display = 'block';
