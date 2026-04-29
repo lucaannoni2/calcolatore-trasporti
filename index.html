@@ -4,265 +4,427 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PalletFlow — Calcolo spedizioni pallet</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #0f0f0f; --surface: #1a1a1a; --surface2: #222;
-  --border: #2e2e2e; --accent: #f0a500; --accent2: #4e9af0;
-  --text: #f0ece4; --muted: #888;
-  --font-head: 'Syne', sans-serif; --font-mono: 'DM Mono', monospace;
-  --font-italic: 'Playfair Display', serif;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+ 
+:root{
+  --bg:#f8f7f4;
+  --surface:#ffffff;
+  --surface2:#f4f3f0;
+  --border:#e8e6e1;
+  --border2:#d4d2cc;
+  --accent:#c8420a;
+  --accent-light:#fdf0ea;
+  --accent2:#1a56a0;
+  --accent2-light:#edf3fb;
+  --text:#1a1917;
+  --text2:#6b6863;
+  --text3:#9b9894;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Inter',sans-serif;
+  --radius:8px;
+  --radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,0.08),0 2px 4px rgba(0,0,0,0.04);
 }
-html, body { background: var(--bg); color: var(--text); font-family: var(--font-head); min-height: 100vh; }
-
-nav {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 28px; border-bottom: 1px solid var(--border);
-  position: sticky; top: 0; background: var(--bg); z-index: 100;
+ 
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+ 
+/* ── NAV ── */
+nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;height:56px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;
 }
-.logo { display: flex; align-items: center; gap: 10px; font-size: 1.1rem; font-weight: 800; letter-spacing: -0.03em; }
-.logo-icon { width: 34px; height: 34px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-.badge { font-size: 0.6rem; font-family: var(--font-mono); background: var(--surface2); border: 1px solid var(--border); padding: 2px 7px; border-radius: 4px; color: var(--muted); letter-spacing: 0.08em; }
-.nav-links { display: flex; gap: 4px; }
-.nav-btn { background: none; border: none; color: var(--muted); font-family: var(--font-head); font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
-.nav-btn:hover { color: var(--text); background: var(--surface); }
-.nav-btn.active { background: var(--text); color: var(--bg); }
-
-main { max-width: 900px; margin: 0 auto; padding: 52px 24px 80px; }
-
-.hero { margin-bottom: 40px; }
-.hero h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.05; letter-spacing: -0.04em; margin-bottom: 4px; }
-.hero h1 em { font-family: var(--font-italic); font-style: italic; font-weight: 400; color: var(--accent); }
-.hero-sub { font-size: 0.78rem; font-family: var(--font-mono); color: var(--muted); margin-top: 12px; }
-.hero-sub span { margin-right: 12px; }
-.hero-sub span::after { content: '·'; margin-left: 12px; color: var(--border); }
-.hero-sub span:last-child::after { content: ''; }
-
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; margin-bottom: 16px; }
-.card-label { font-size: 0.68rem; font-family: var(--font-mono); letter-spacing: 0.12em; color: var(--muted); margin-bottom: 14px; text-transform: uppercase; }
-
-.province-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font-head); font-size: 1.5rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 16px 20px; outline: none; transition: border-color 0.2s; }
-.province-input::placeholder { color: #444; font-weight: 400; font-size: 1.2rem; }
-.province-input:focus { border-color: var(--accent); }
-
-.misure-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 4px; }
-@media (max-width: 600px) { .misure-grid { grid-template-columns: repeat(2, 1fr); } }
-.field-group label { display: block; font-size: 0.65rem; font-family: var(--font-mono); letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; }
-.input-wrap { position: relative; }
-.num-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font-head); font-size: 1.4rem; font-weight: 700; padding: 12px 48px 12px 16px; outline: none; transition: border-color 0.2s; -moz-appearance: textfield; }
-.num-input::-webkit-inner-spin-button, .num-input::-webkit-outer-spin-button { -webkit-appearance: none; }
-.num-input:focus { border-color: var(--accent); }
-.unit { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 0.72rem; font-family: var(--font-mono); color: var(--muted); }
-
-.classifica-bar { display: flex; align-items: center; gap: 12px; padding: 12px 18px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; margin-top: 14px; flex-wrap: wrap; }
-.classifica-label { font-size: 0.68rem; font-family: var(--font-mono); color: var(--muted); letter-spacing: 0.08em; flex-shrink: 0; }
-.classifica-items { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.classifica-item { display: flex; align-items: center; gap: 8px; }
-.classifica-name { font-size: 0.68rem; font-family: var(--font-mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-.cls-badge { font-size: 0.7rem; font-family: var(--font-mono); font-weight: 500; padding: 3px 10px; border-radius: 5px; border: 1px solid transparent; letter-spacing: 0.04em; }
-.cls-badge.orange { background: rgba(240,165,0,0.15); border-color: var(--accent); color: var(--accent); }
-.cls-badge.blue   { background: rgba(78,154,240,0.15); border-color: var(--accent2); color: var(--accent2); }
-.cls-badge.green  { background: rgba(80,200,120,0.15); border-color: #50c878; color: #50c878; }
-.cls-badge.red    { background: rgba(240,80,80,0.15); border-color: #f05050; color: #f05050; }
-.cls-badge.gray   { background: rgba(150,150,150,0.1); border-color: #555; color: #aaa; }
-.cls-badge.purple { background: rgba(180,100,240,0.15); border-color: #b464f0; color: #b464f0; }
-.area-info { margin-left: auto; font-size: 0.72rem; font-family: var(--font-mono); color: var(--muted); flex-shrink: 0; }
-
-.qty-row { display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; align-items: center; }
-.qty-btn { width: 52px; height: 52px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
-.qty-btn:hover { border-color: var(--accent); color: var(--accent); }
-.qty-btn.selected { background: transparent; border-color: var(--accent); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-.qty-custom { width: 80px; height: 52px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font-head); font-size: 1rem; font-weight: 700; text-align: center; padding: 0 8px; outline: none; transition: border-color 0.2s; -moz-appearance: textfield; }
-.qty-custom::-webkit-inner-spin-button, .qty-custom::-webkit-outer-spin-button { -webkit-appearance: none; }
-.qty-custom:focus { border-color: var(--accent); }
-
-.cta-btn { width: 100%; padding: 18px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; color: var(--muted); font-family: var(--font-head); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
-.cta-btn.ready { background: var(--accent); border-color: var(--accent); color: #000; box-shadow: 0 0 30px rgba(240,165,0,0.25); }
-.cta-btn.ready:hover { background: #ffc107; box-shadow: 0 0 40px rgba(240,165,0,0.4); transform: translateY(-1px); }
-
-#results { display: none; }
-.results-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
-.results-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.02em; }
-.results-sub { font-size: 0.72rem; font-family: var(--font-mono); color: var(--muted); }
-
-.prezzi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-@media (max-width: 640px) { .prezzi-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 400px) { .prezzi-grid { grid-template-columns: 1fr; } }
-
-.prezzo-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; transition: border-color 0.2s; position: relative; overflow: hidden; }
-.prezzo-card:hover { border-color: #444; }
-.prezzo-card.best { border-color: var(--accent); background: rgba(240,165,0,0.06); }
-.prezzo-card.best::after { content: 'MIGLIOR PREZZO'; position: absolute; top: 10px; right: 10px; font-size: 0.55rem; font-family: var(--font-mono); letter-spacing: 0.1em; background: var(--accent); color: #000; padding: 2px 7px; border-radius: 4px; font-weight: 700; }
-.prezzo-vettore { font-size: 0.65rem; font-family: var(--font-mono); color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
-.prezzo-valore { font-size: 2rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
-.prezzo-valore .currency { font-size: 1rem; opacity: 0.6; margin-right: 2px; }
-.prezzo-detail { font-size: 0.68rem; font-family: var(--font-mono); color: var(--muted); margin-top: 8px; line-height: 1.7; }
-.prezzo-detail span { color: var(--text); }
-.prezzo-na { font-size: 1.1rem; font-weight: 700; color: var(--muted); margin-top: 8px; }
-
-.disclaimer { margin-top: 40px; padding: 16px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 0.68rem; font-family: var(--font-mono); color: var(--muted); line-height: 1.7; }
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{
+  width:30px;height:30px;background:var(--accent);border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;
+}
+.logo-name{font-size:15px;font-weight:600;color:var(--text);letter-spacing:-0.02em}
+.logo-badge{
+  font-size:10px;font-family:var(--mono);
+  background:var(--surface2);border:1px solid var(--border);
+  padding:1px 6px;border-radius:4px;color:var(--text3);
+  letter-spacing:0.04em;
+}
+.nav-meta{font-size:12px;color:var(--text3);font-family:var(--mono)}
+ 
+/* ── LAYOUT ── */
+.page{max-width:880px;margin:0 auto;padding:40px 24px 80px}
+ 
+/* ── HERO ── */
+.hero{margin-bottom:36px}
+.hero-title{font-size:28px;font-weight:600;letter-spacing:-0.03em;line-height:1.2;margin-bottom:6px}
+.hero-title em{font-style:normal;color:var(--accent)}
+.hero-sub{display:flex;flex-wrap:wrap;gap:0;align-items:center}
+.hero-sub-item{
+  font-size:11px;font-family:var(--mono);color:var(--text3);
+  padding:0 10px;border-right:1px solid var(--border2);
+  line-height:1;
+}
+.hero-sub-item:first-child{padding-left:0}
+.hero-sub-item:last-child{border-right:none}
+ 
+/* ── SECTION ── */
+.section{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:24px;
+  margin-bottom:12px;
+  box-shadow:var(--shadow);
+}
+.section-label{
+  font-size:10px;font-family:var(--mono);letter-spacing:0.1em;
+  color:var(--text3);text-transform:uppercase;margin-bottom:16px;
+}
+ 
+/* ── PROVINCE INPUT ── */
+.prov-row{display:flex;gap:12px;align-items:flex-start}
+.prov-field{flex:0 0 140px}
+.cap-field{flex:0 0 110px}
+.field-label{
+  font-size:11px;font-family:var(--mono);color:var(--text3);
+  letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px;
+}
+.field-note{font-size:10px;color:var(--text3);margin-top:4px}
+.prov-input{
+  width:100%;background:var(--surface2);
+  border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--text);font-family:var(--mono);font-size:22px;font-weight:500;
+  letter-spacing:0.12em;text-transform:uppercase;
+  padding:10px 14px;outline:none;
+  transition:border-color 0.15s,box-shadow 0.15s;
+}
+.prov-input::placeholder{color:var(--text3);font-weight:400;font-size:16px;letter-spacing:0.04em}
+.prov-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,66,10,0.1)}
+.cap-input{
+  width:100%;background:var(--surface2);
+  border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--text);font-family:var(--mono);font-size:15px;
+  padding:10px 14px;outline:none;
+  transition:border-color 0.15s,box-shadow 0.15s;
+}
+.cap-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,66,10,0.1)}
+ 
+/* ── MISURE GRID ── */
+.misure-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:580px){.misure-grid{grid-template-columns:repeat(2,1fr)}}
+.num-wrap{position:relative}
+.num-input{
+  width:100%;background:var(--surface2);
+  border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--text);font-family:var(--mono);font-size:20px;font-weight:500;
+  padding:10px 38px 10px 14px;outline:none;
+  transition:border-color 0.15s,box-shadow 0.15s;
+  -moz-appearance:textfield;
+}
+.num-input::-webkit-inner-spin-button,.num-input::-webkit-outer-spin-button{-webkit-appearance:none}
+.num-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,66,10,0.1)}
+.num-unit{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  font-size:11px;font-family:var(--mono);color:var(--text3);
+}
+ 
+/* ── CLASSIFICA BAR ── */
+.cls-bar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  margin-top:14px;padding:10px 14px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);
+}
+.cls-bar-label{font-size:11px;font-family:var(--mono);color:var(--text3);flex-shrink:0}
+.cls-items{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.cls-item{display:flex;align-items:center;gap:5px}
+.cls-carrier{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase}
+.cls-badge{
+  font-size:10px;font-family:var(--mono);font-weight:500;
+  padding:2px 8px;border-radius:4px;
+  border:1px solid transparent;letter-spacing:0.02em;
+}
+.cls-badge.amber{background:#fef3e2;border-color:#f59e0b;color:#92400e}
+.cls-badge.blue{background:#eff6ff;border-color:#3b82f6;color:#1e40af}
+.cls-badge.green{background:#f0fdf4;border-color:#22c55e;color:#166534}
+.cls-badge.red{background:#fef2f2;border-color:#ef4444;color:#991b1b}
+.cls-badge.violet{background:#f5f3ff;border-color:#8b5cf6;color:#5b21b6}
+.cls-badge.muted{background:var(--surface2);border-color:var(--border);color:var(--text3)}
+.cls-area{margin-left:auto;font-size:11px;font-family:var(--mono);color:var(--text3)}
+ 
+/* ── SERVIZIO SELECTOR ── */
+.svc-row{display:flex;gap:6px}
+.svc-btn{
+  padding:7px 18px;background:var(--surface2);
+  border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--text2);font-family:var(--sans);font-size:13px;font-weight:500;
+  cursor:pointer;transition:all 0.15s;
+}
+.svc-btn:hover{border-color:var(--border2);color:var(--text)}
+.svc-btn.active{
+  background:var(--accent-light);border-color:var(--accent);color:var(--accent);
+}
+ 
+/* ── QTY ROW ── */
+.qty-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.qty-btn{
+  width:40px;height:40px;background:var(--surface2);
+  border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--text2);font-family:var(--mono);font-size:15px;font-weight:500;
+  cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;
+}
+.qty-btn:hover{border-color:var(--border2);color:var(--text)}
+.qty-btn.active{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+.qty-custom{
+  width:64px;height:40px;background:var(--surface2);
+  border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--text);font-family:var(--mono);font-size:13px;font-weight:500;
+  text-align:center;padding:0 8px;outline:none;
+  transition:border-color 0.15s;-moz-appearance:textfield;
+}
+.qty-custom::-webkit-inner-spin-button,.qty-custom::-webkit-outer-spin-button{-webkit-appearance:none}
+.qty-custom:focus{border-color:var(--accent)}
+.qty-sep{width:1px;height:24px;background:var(--border);margin:0 4px}
+ 
+/* ── CTA ── */
+.cta{
+  width:100%;padding:14px;margin-top:10px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  color:var(--text3);font-family:var(--mono);font-size:11px;font-weight:500;
+  letter-spacing:0.1em;text-transform:uppercase;
+  cursor:pointer;transition:all 0.2s;
+}
+.cta.ready{
+  background:var(--accent);border-color:var(--accent);color:#fff;
+  box-shadow:0 2px 8px rgba(200,66,10,0.3);
+}
+.cta.ready:hover{background:#b33a08;transform:translateY(-1px);box-shadow:0 4px 14px rgba(200,66,10,0.35)}
+.cta.ready:active{transform:translateY(0)}
+ 
+/* ── RESULTS ── */
+#results{display:none;margin-top:20px}
+.results-head{margin-bottom:16px}
+.results-title{font-size:15px;font-weight:600;letter-spacing:-0.02em}
+.results-sub{font-size:11px;font-family:var(--mono);color:var(--text3);margin-top:3px}
+.disagiata-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;font-family:var(--mono);font-weight:500;
+  background:#fff7ed;border:1px solid #f59e0b;color:#92400e;
+  padding:2px 8px;border-radius:4px;margin-left:8px;
+}
+ 
+/* ── PREZZI GRID ── */
+.prezzi-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-bottom:10px;
+}
+.prezzi-grid-row2{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+@media(max-width:700px){
+  .prezzi-grid{grid-template-columns:repeat(2,1fr)}
+  .prezzi-grid-row2{grid-template-columns:repeat(2,1fr)}
+}
+ 
+/* ── PREZZO CARD ── */
+.p-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:16px 18px;
+  position:relative;transition:border-color 0.15s;
+  box-shadow:var(--shadow);
+}
+.p-card:hover{border-color:var(--border2)}
+.p-card.best{
+  border-color:var(--accent);
+  background:linear-gradient(135deg,#fffcfb 0%,var(--accent-light) 100%);
+}
+.best-pill{
+  position:absolute;top:-1px;right:12px;
+  font-size:9px;font-family:var(--mono);font-weight:500;letter-spacing:0.08em;
+  background:var(--accent);color:#fff;
+  padding:3px 8px;border-radius:0 0 6px 6px;
+}
+.p-vettore{
+  font-size:10px;font-family:var(--mono);color:var(--text3);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;
+}
+.p-prezzo{
+  font-size:26px;font-weight:600;letter-spacing:-0.03em;
+  color:var(--text);line-height:1;margin-bottom:8px;
+  font-family:var(--mono);
+}
+.p-prezzo .p-eur{font-size:14px;font-weight:400;color:var(--text3);margin-right:1px}
+.p-detail{font-size:11px;font-family:var(--mono);color:var(--text3);line-height:1.8}
+.p-detail .hi{color:var(--text2)}
+.p-na{font-size:13px;font-weight:500;color:var(--text3);margin-top:6px}
+.p-resa{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:10px;font-family:var(--mono);
+  background:var(--accent2-light);color:var(--accent2);
+  border:1px solid rgba(26,86,160,0.2);
+  padding:2px 7px;border-radius:4px;margin-top:6px;
+}
+ 
+/* ── DISCLAIMER ── */
+.disclaimer{
+  margin-top:32px;padding:14px 18px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);
+  font-size:11px;font-family:var(--mono);color:var(--text3);line-height:1.7;
+}
 </style>
 </head>
 <body>
-
+ 
 <nav>
-  <div class="logo">
-    <div class="logo-icon">📦</div>
-    PalletFlow
-    <span class="badge">BETA</span>
-  </div>
-  <div class="nav-links">
-    <button class="nav-btn active" onclick="showTab('calcola')">Calcola</button>
-  </div>
+  <a class="logo" href="#">
+    <div class="logo-mark">📦</div>
+    <span class="logo-name">PalletFlow</span>
+    <span class="logo-badge">BETA</span>
+  </a>
+  <span class="nav-meta">Partenza: Saronno (VA)</span>
 </nav>
-
-<main>
-<div id="calcola-tab">
+ 
+<div class="page">
   <div class="hero">
-    <h1>Inserisci le misure del bancale.<br><em>La classe la calcoliamo noi.</em></h1>
-    <p class="hero-sub">
-      <span>Partenza: Saronno (VA)</span>
-      <span>Prealpina apr/2022</span>
-      <span>MediaLogistica 2023</span>
-      <span>BRT gen/2026</span>
-      <span>THL 2024</span>
-    </p>
+    <h1 class="hero-title">Calcola il costo di spedizione.<br><em>Il vettore migliore lo troviamo noi.</em></h1>
+    <div class="hero-sub" style="margin-top:14px">
+      <span class="hero-sub-item">Prealpina mag/2026</span>
+      <span class="hero-sub-item">MediaLogistica 2023</span>
+      <span class="hero-sub-item">BRT gen/2026</span>
+      <span class="hero-sub-item">THL 2024</span>
+      <span class="hero-sub-item">BS Partners 2026</span>
+      <span class="hero-sub-item">ASAP Logistica</span>
+      <span class="hero-sub-item">SUSA apr/2026</span>
+    </div>
   </div>
-
-  <div class="card">
-    <div class="card-label">Provincia di destinazione</div>
-    <input class="province-input" id="provincia" type="text" maxlength="2" placeholder="es. RM" oninput="onInput()">
-    <div style="margin-top:12px;display:flex;gap:12px;align-items:center;">
-      <div style="flex:1;">
-        <div class="card-label" style="margin-bottom:6px;">CAP destinazione <span style="color:#555;font-size:0.6rem;">(opzionale — per rilevare zone disagiate)</span></div>
-        <div class="input-wrap">
-          <input class="num-input" id="cap" type="text" maxlength="5" placeholder="es. 00100" oninput="onInput()" style="font-size:1rem;padding:10px 16px;">
-        </div>
+ 
+  <!-- Provincia + CAP -->
+  <div class="section">
+    <div class="section-label">Destinazione</div>
+    <div class="prov-row">
+      <div class="prov-field">
+        <div class="field-label">Provincia</div>
+        <input class="prov-input" id="provincia" type="text" maxlength="2" placeholder="MI" oninput="onInput()">
+      </div>
+      <div class="cap-field">
+        <div class="field-label">CAP <span style="font-size:9px;opacity:0.6">(opz.)</span></div>
+        <input class="cap-input" id="cap" type="text" maxlength="5" placeholder="20100" oninput="onInput()">
+        <div class="field-note">per zone disagiate</div>
       </div>
     </div>
   </div>
-
-  <div class="card">
-    <div class="card-label">Misure bancale</div>
+ 
+  <!-- Misure -->
+  <div class="section">
+    <div class="section-label">Misure bancale</div>
     <div class="misure-grid">
-      <div class="field-group">
-        <label>Lunghezza</label>
-        <div class="input-wrap">
+      <div>
+        <div class="field-label">Lunghezza</div>
+        <div class="num-wrap">
           <input class="num-input" id="lung" type="number" value="120" min="1" oninput="onInput()">
-          <span class="unit">cm</span>
+          <span class="num-unit">cm</span>
         </div>
       </div>
-      <div class="field-group">
-        <label>Larghezza</label>
-        <div class="input-wrap">
+      <div>
+        <div class="field-label">Larghezza</div>
+        <div class="num-wrap">
           <input class="num-input" id="larg" type="number" value="100" min="1" oninput="onInput()">
-          <span class="unit">cm</span>
+          <span class="num-unit">cm</span>
         </div>
       </div>
-      <div class="field-group">
-        <label>Altezza</label>
-        <div class="input-wrap">
+      <div>
+        <div class="field-label">Altezza</div>
+        <div class="num-wrap">
           <input class="num-input" id="alt" type="number" value="100" min="1" oninput="onInput()">
-          <span class="unit">cm</span>
+          <span class="num-unit">cm</span>
         </div>
       </div>
-      <div class="field-group">
-        <label>Peso</label>
-        <div class="input-wrap">
+      <div>
+        <div class="field-label">Peso</div>
+        <div class="num-wrap">
           <input class="num-input" id="peso" type="number" value="300" min="1" oninput="onInput()">
-          <span class="unit">kg</span>
+          <span class="num-unit">kg</span>
         </div>
       </div>
     </div>
-    <div class="classifica-bar">
-      <span class="classifica-label">Classificazione —</span>
-      <div class="classifica-items">
-        <div class="classifica-item">
-          <span class="classifica-name">Prealpina</span>
-          <span class="cls-badge orange" id="cls-prealpina">Half</span>
-        </div>
-        <div class="classifica-item">
-          <span class="classifica-name">MediaLog.</span>
-          <span class="cls-badge blue" id="cls-media">PL3</span>
-        </div>
-        <div class="classifica-item">
-          <span class="classifica-name">BRT</span>
-          <span class="cls-badge green" id="cls-brt">—</span>
-        </div>
-        <div class="classifica-item">
-          <span class="classifica-name">THL</span>
-          <span class="cls-badge purple" id="cls-thl">—</span>
-        </div>
-        <div class="classifica-item">
-          <span class="classifica-name">BS</span>
-          <span class="cls-badge gray" id="cls-bs">—</span>
-        </div>
-        <div class="classifica-item">
-          <span class="classifica-name">ASAP</span>
-          <span class="cls-badge gray" id="cls-asap">—</span>
-        </div>
-        <div class="classifica-item">
-          <span class="classifica-name">SUSA</span>
-          <span class="cls-badge gray" id="cls-susa">—</span>
-        </div>
+ 
+    <div class="cls-bar">
+      <span class="cls-bar-label">Classe —</span>
+      <div class="cls-items">
+        <div class="cls-item"><span class="cls-carrier">Prealpina</span><span class="cls-badge amber" id="cls-prealpina">Half</span></div>
+        <div class="cls-item"><span class="cls-carrier">MediaLog.</span><span class="cls-badge blue" id="cls-media">PL3</span></div>
+        <div class="cls-item"><span class="cls-carrier">BRT</span><span class="cls-badge green" id="cls-brt">—</span></div>
+        <div class="cls-item"><span class="cls-carrier">THL</span><span class="cls-badge violet" id="cls-thl">—</span></div>
+        <div class="cls-item"><span class="cls-carrier">BS</span><span class="cls-badge muted" id="cls-bs">—</span></div>
+        <div class="cls-item"><span class="cls-carrier">ASAP</span><span class="cls-badge amber" id="cls-asap">—</span></div>
+        <div class="cls-item"><span class="cls-carrier">SUSA</span><span class="cls-badge blue" id="cls-susa">—</span></div>
       </div>
-      <span class="area-info" id="area-info">Area base: 1.20 m²</span>
+      <span class="cls-area" id="area-info"></span>
     </div>
   </div>
-
-  <div class="card">
-    <div class="card-label">Servizio Prealpina</div>
-    <div class="qty-row">
-      <button class="qty-btn selected" id="svc-standard" onclick="setServizio('standard')" style="width:auto;padding:0 20px;font-size:0.8rem;letter-spacing:0.06em;">Standard</button>
-      <button class="qty-btn" id="svc-nonstop" onclick="setServizio('nonstop')" style="width:auto;padding:0 20px;font-size:0.8rem;letter-spacing:0.06em;">Non Stop</button>
+ 
+  <!-- Servizio Prealpina -->
+  <div class="section">
+    <div class="section-label">Servizio Prealpina</div>
+    <div class="svc-row">
+      <button class="svc-btn active" id="svc-standard" onclick="setServizio('standard')">Standard</button>
+      <button class="svc-btn" id="svc-nonstop" onclick="setServizio('nonstop')">Non Stop</button>
     </div>
   </div>
-
-  <div class="card">
-    <div class="card-label">Numero di bancali da spedire</div>
+ 
+  <!-- Quantità -->
+  <div class="section">
+    <div class="section-label">Numero di bancali</div>
     <div class="qty-row">
-      <button class="qty-btn selected" id="qty-btn-1" onclick="setQty(1)">1</button>
+      <button class="qty-btn active" id="qty-btn-1" onclick="setQty(1)">1</button>
       <button class="qty-btn" id="qty-btn-2" onclick="setQty(2)">2</button>
       <button class="qty-btn" id="qty-btn-3" onclick="setQty(3)">3</button>
       <button class="qty-btn" id="qty-btn-4" onclick="setQty(4)">4</button>
       <button class="qty-btn" id="qty-btn-5" onclick="setQty(5)">5</button>
-      <input class="qty-custom" id="qty-custom" type="number" min="1" max="99" placeholder="+" oninput="onQtyCustom(this.value)">
+      <div class="qty-sep"></div>
+      <input class="qty-custom" id="qty-custom" type="number" min="1" max="99" placeholder="N" oninput="onQtyCustom(this.value)">
     </div>
   </div>
-
-  <button class="cta-btn" id="cta" onclick="calcola()">→ CONFRONTA PREZZI — INSERISCI PROVINCIA</button>
-
+ 
+  <button class="cta" id="cta" onclick="calcola()">→ INSERISCI PROVINCIA E MISURE PER CONFRONTARE</button>
+ 
+  <!-- Risultati -->
   <div id="results">
-    <div class="card">
-      <div class="results-header">
-        <div>
-          <div class="results-title" id="res-title"></div>
-          <div class="results-sub" id="res-sub"></div>
-        </div>
-      </div>
-      <div class="prezzi-grid" id="prezzi-grid"></div>
+    <div class="results-head">
+      <div class="results-title" id="res-title"></div>
+      <div class="results-sub" id="res-sub"></div>
     </div>
+    <div class="prezzi-grid" id="grid-top"></div>
+    <div class="prezzi-grid-row2" id="grid-bot"></div>
   </div>
-
+ 
   <div class="disclaimer">
-    ⚠️ Prezzi indicativi basati su listini reali: Prealpina (mag/2026), MediaLogistica (2023), BRT Origgio (gen/2026), THL (2024), BS Partners (2026), ASAP Logistica, SUSA (apr/2026).
-    Non includono IVA, supplemento carburante, ZTL o servizi accessori. Verificare sempre con il vettore prima della spedizione.
+    ⚠ Prezzi indicativi da listini reali. Non includono IVA, supplemento carburante, ZTL o servizi accessori.
+    Verificare sempre con il vettore prima della spedizione.
   </div>
 </div>
-</main>
-
+ 
 <script>
+ 
 // ══════════════════════════════════════════════
 // PREALPINA — classificazione per altezza + peso
 // Fonte: Tipologie.pdf + listino apr/2022
 // ══════════════════════════════════════════════
-
+ 
 // Classi Prealpina: determinata da altezza (cm) e peso (kg)
 // Tabella altezze: ≤60=Mini, ≤80=Quarter, ≤120=Half, ≤160=Medium, ≤240=Mega (colonna)
 // Tabella pesi: ≤150, ≤300, ≤450, ≤600, ≤750, ≤900, ≤1050, ≤1200 (righe)
 // La classe finale è la maggiore tra quella da altezza e quella da peso
-
+ 
 // Colonne altezza -> classe base
 function clsPrealpinaAlt(alt) {
   if (alt <= 60)  return 0; // Mini
@@ -272,7 +434,7 @@ function clsPrealpinaAlt(alt) {
   if (alt <= 240) return 8; // Mega (colonna finale)
   return 8;
 }
-
+ 
 // Righe peso -> classe base
 function clsPrealpinaPeso(peso) {
   if (peso <= 150)  return 0; // Mini
@@ -285,7 +447,7 @@ function clsPrealpinaPeso(peso) {
   if (peso <= 1200) return 8; // Mega
   return 8;
 }
-
+ 
 // Mapping colonna->classe per incrocio altezza/peso
 // Tabella dal PDF Tipologie (altezza come colonna, peso come riga)
 // colonne: 0=≤60, 1=61-80, 2=81-120, 3=121-160, 4=161-240
@@ -301,14 +463,14 @@ const PREALPINA_MATRIX = {
   peso6: ['Big',     'Big',      'Big',     'Big',      'Mega'  ],
   peso7: ['Mega',    'Mega',     'Mega',    'Mega',     'Mega'  ],
 };
-
+ 
 function getPrealpinaClass(alt, peso) {
   let altIdx = alt <= 60 ? 0 : alt <= 80 ? 1 : alt <= 120 ? 2 : alt <= 160 ? 3 : 4;
   let pesoIdx = peso <= 150 ? 0 : peso <= 300 ? 1 : peso <= 450 ? 2 : peso <= 600 ? 3 : peso <= 750 ? 4 : peso <= 900 ? 5 : peso <= 1050 ? 6 : 7;
   const row = ['peso0','peso1','peso2','peso3','peso4','peso5','peso6','peso7'][pesoIdx];
   return PREALPINA_MATRIX[row][altIdx];
 }
-
+ 
 // Riprezzamento dimensionale Prealpina (area base m²)
 function prealpinaDimMaj(area) {
   if (area <= 1.28) return 0;
@@ -327,7 +489,7 @@ function prealpinaDimMaj(area) {
   if (area <= 4.80) return 2.50;
   return 3.00;
 }
-
+ 
 // Riprezzamento peso Prealpina
 function prealpinaPesoMaj(peso) {
   if (peso <= 1200) return 0;
@@ -339,7 +501,7 @@ function prealpinaPesoMaj(peso) {
   if (peso <= 1800) return 0.60;
   return 0.60;
 }
-
+ 
 // Listino Prealpina prezzi base per provincia (SERVIZIO STANDARD 2026)
 // Decorrenza 01/05/26 — Classi: Mini, Quarter, Half, Medium, Light, Large, Full, Big, Mega
 const PREALPINA = {
@@ -455,7 +617,7 @@ const PREALPINA = {
   'BL': [40.00,46.20,61.60,70.90,78.70,95.50,109.10,113.60,131.60],
 };
 const PREALPINA_CLASSI = ['Mini','Quarter','Half','Medium','Light','Large','Full','Big','Mega'];
-
+ 
 // Listino Prealpina SERVIZIO NON STOP (2026)
 // Decorrenza 01/05/26 — Classi: Mini, Quarter, Half, Medium, Light, Large, Full, Big, Mega
 const PREALPINA_NS = {
@@ -570,7 +732,7 @@ const PREALPINA_NS = {
   'VI': [40.70,47.10,61.50,67.90,73.90,90.30,99.30,106.10,123.30],
   'BL': [51.10,56.20,70.90,80.80,90.80,110.80,125.30,132.00,151.80],
 };
-
+ 
 // ══════════════════════════════════════════════
 // BS PARTNERS — tariffa €/100 kg a scaglioni
 // Fonte: BS_PARTNER.xlsx (2026)
@@ -580,9 +742,9 @@ const PREALPINA_NS = {
 //            1751-2000, 2001-2250, 2251-2500, 2501-3000, 3001-3500, 3501-4000,
 //            4001-4500, 4501-5000, 5001+
 // Pesi in KG tassabili; prezzo minimo fisso
-
+ 
 const BS_SCAGLIONI = [0,101,201,301,401,501,601,701,801,901,1001,1251,1501,1751,2001,2251,2501,3001,3501,4001,4501,5001];
-
+ 
 const BS_DATA = {
   // prov: { min, rates: [€/100kg per scaglione] }
   'TO': { min:168.60, prov:'Torino',          rates:[25.25,25.25,25.25,25.25,21.05,16.86,16.86,16.86,16.86,15.59,14.33,14.33,14.33,14.33,14.33,12.32,10.31,10.31,10.31,10.31,9.18,8.04] },
@@ -604,7 +766,7 @@ const BS_DATA = {
   'RE': { min:188.95, prov:'Reggio Emilia',   rates:[34.24,34.24,34.24,34.24,28.48,22.71,22.71,22.71,22.71,20.83,18.96,18.96,18.96,18.96,18.96,16.29,13.63,13.63,13.63,13.63,12.01,10.40] },
   'PR': { min:188.95, prov:'Parma',           rates:[34.24,34.24,34.24,34.24,28.48,22.71,22.71,22.71,22.71,20.83,18.96,18.96,18.96,18.96,18.96,16.29,13.63,13.63,13.63,13.63,12.01,10.40] },
 };
-
+ 
 function getPrezzo_BS(prov, peso, lung, larg, alt) {
   const p = prov.toUpperCase().trim();
   const d = BS_DATA[p];
@@ -621,7 +783,7 @@ function getPrezzo_BS(prov, peso, lung, larg, alt) {
   const prezzo = Math.max((pesoTax / 100) * tariffa, d.min);
   return { prezzo: Math.round(prezzo * 100) / 100, cls: d.prov, pesoTax: Math.round(pesoTax) };
 }
-
+ 
 // ══════════════════════════════════════════════
 // ASAP LOGISTICA — tariffa €/quintale (100 kg)
 // Fonte: ASAP_LOGISTICA.xls
@@ -631,7 +793,7 @@ function getPrezzo_BS(prov, peso, lung, larg, alt) {
 //   S = 0-200 kg, M = 201-400 kg, B = ≥401 kg
 // Sovraprezzo disagiate: +€5/bancale
 // ══════════════════════════════════════════════
-
+ 
 // rates: [fino 20 q.li, da 20-50 q.li, da 50-80 q.li, oltre 80 q.li] (€/100kg)
 // fixed: prezzi fissi per bancale [S, M, B] per alcune aree
 const ASAP_DATA = {
@@ -702,7 +864,7 @@ const ASAP_DATA = {
   'PU': { rates:[15.895,13.00,9.25,8.35] },
   'AP': { rates:[15.895,14.25,11.05,9.60] },
 };
-
+ 
 // Prezzi fissi per bancale (alcune zone — da riga 10-14 del XLS)
 // Lombardia: S=18.55, M=26.6, B=41.7
 // Emilia: S=28.95, M=34.75, B=55.6
@@ -732,7 +894,7 @@ const ASAP_ZONA = {
   'TO':'PIEMONTE','AL':'PIEMONTE','AT':'PIEMONTE','BI':'PIEMONTE',
   'NO':'PIEMONTE','VB':'PIEMONTE','VC':'PIEMONTE','CN':'PIEMONTE','AO':'PIEMONTE',
 };
-
+ 
 function getASAPScaglione(pesoKg) {
   // Scaglioni in quintali: ≤20q=2000kg, 20-50q=5000kg, 50-80q=8000kg, >80q
   if (pesoKg <= 2000) return 0;
@@ -740,21 +902,21 @@ function getASAPScaglione(pesoKg) {
   if (pesoKg <= 8000) return 2;
   return 3;
 }
-
+ 
 function getPrezzo_ASAP(prov, peso, lung, larg, alt, isDisagiata) {
   const p = prov.toUpperCase().trim();
   const d = ASAP_DATA[p];
   if (!d) return null;
-
+ 
   // Peso tassabile: max(reale, volumetrico 333 kg/m³ standard groupage)
   const vol = (lung * larg * alt) / 1000000;
   const pesoTax = Math.max(peso, vol * 333);
-
+ 
   // Calcola prezzo da tariffa a peso
   const scag = getASAPScaglione(pesoTax);
   const tariffa = d.rates[scag]; // €/100 kg
   let prezzo = (pesoTax / 100) * tariffa;
-
+ 
   // Confronta con prezzo fisso per bancale (se zona prevede fissi)
   const zona = ASAP_ZONA[p];
   let clsBancale = '';
@@ -767,10 +929,10 @@ function getPrezzo_ASAP(prov, peso, lung, larg, alt, isDisagiata) {
     // Usa il maggiore tra tariffa a peso e prezzo fisso
     prezzo = Math.max(prezzo, prezzoFisso);
   }
-
+ 
   // Sovraprezzo disagiata
   if (isDisagiata) prezzo += 5;
-
+ 
   return {
     prezzo: Math.round(prezzo * 100) / 100,
     cls: zona || p,
@@ -778,7 +940,7 @@ function getPrezzo_ASAP(prov, peso, lung, larg, alt, isDisagiata) {
     clsBancale
   };
 }
-
+ 
 // ══════════════════════════════════════════════
 // SUSA TRASPORTI — tariffa €/100 kg a 4 scaglioni
 // Fonte: Offerta 90 019636 del 28/04/2026
@@ -788,7 +950,7 @@ function getPrezzo_ASAP(prov, peso, lung, larg, alt, isDisagiata) {
 // Tempi di resa (colonna VA): 2gg Nord/Centro, 4gg Calabria, 5gg Sicilia/Sardegna
 // Province con tariffa maggiorata rispetto alla regione base
 // ══════════════════════════════════════════════
-
+ 
 // rates: [≤300, ≤700, ≤1000, >1000] (€/100 kg)
 // Mappa provincia -> tariffa (regione base o fascia specifica)
 const SUSA_PROV = {
@@ -900,7 +1062,7 @@ const SUSA_PROV = {
   'NU':[26.040,25.520,25.010,24.510],'OR':[26.040,25.520,25.010,24.510],
   'OG':[26.040,25.520,25.010,24.510],
 };
-
+ 
 // Tempi di resa SUSA da colonna VA (giorni lavorativi)
 const SUSA_RESA_REGIONE = {
   LOMBARDIA:2,PIEMONTE:2,'VALLE D\'AOSTA':2,VENETO:2,'TRENTINO A.A.':2,
@@ -938,35 +1100,35 @@ const SUSA_PROV_REGIONE = {
   'CA':'SARDEGNA','SS':'SARDEGNA','OT':'SARDEGNA','VS':'SARDEGNA',
   'CI':'SARDEGNA','SU':'SARDEGNA','NU':'SARDEGNA','OR':'SARDEGNA','OG':'SARDEGNA',
 };
-
+ 
 function getSUSAScaglione(pesoTax) {
   if (pesoTax <= 300) return 0;
   if (pesoTax <= 700) return 1;
   if (pesoTax <= 1000) return 2;
   return 3;
 }
-
+ 
 function getPrezzo_SUSA(prov, peso, lung, larg, alt) {
   const p = prov.toUpperCase().trim();
   const rates = SUSA_PROV[p];
   if (!rates) return null;
-
+ 
   // Peso tassabile: max(reale, volumetrico 300 kg/m³), minimo 100 kg
   const vol = (lung * larg * alt) / 1000000;
   let pesoTax = Math.max(peso, vol * 300, 100);
   // Arrotondamento a 100 kg
   pesoTax = Math.ceil(pesoTax / 100) * 100;
-
+ 
   const scag = getSUSAScaglione(pesoTax);
   const tariffa = rates[scag];
   let prezzo = (pesoTax / 100) * tariffa;
-
+ 
   // Diritto fisso €1.75
   prezzo += 1.75;
-
+ 
   const regione = SUSA_PROV_REGIONE[p] || p;
   const resa = SUSA_RESA_REGIONE[regione] || 2;
-
+ 
   return {
     prezzo: Math.round(prezzo * 100) / 100,
     cls: regione,
@@ -974,13 +1136,13 @@ function getPrezzo_SUSA(prov, peso, lung, larg, alt) {
     resa
   };
 }
-
+ 
 // Tempi di resa Prealpina 2026 (ore)
 const TEMPI_RESA = {"AG": {"ns": 96, "std": 120}, "AL": {"ns": 24, "std": 48}, "AN": {"ns": 24, "std": 48}, "AO": {"ns": 48, "std": 72}, "AP": {"ns": 24, "std": 72}, "AQ": {"ns": 48, "std": 72}, "AR": {"ns": 24, "std": 48}, "AT": {"ns": 24, "std": 48}, "AV": {"ns": 48, "std": 72}, "BA": {"ns": 48, "std": 72}, "BG": {"ns": 24, "std": 48}, "BI": {"ns": 24, "std": 48}, "BL": {"ns": 24, "std": 48}, "BN": {"ns": 48, "std": 72}, "BO": {"ns": 24, "std": 48}, "BR": {"ns": 72, "std": 96}, "BS": {"ns": 24, "std": 48}, "BT": {"ns": 48, "std": 72}, "BZ": {"ns": 48, "std": 72}, "CA": {"ns": 72, "std": 96}, "CB": {"ns": 48, "std": 72}, "CE": {"ns": 48, "std": 72}, "CH": {"ns": 48, "std": 72}, "CI": {"ns": 72, "std": 96}, "CL": {"ns": 96, "std": 120}, "CN": {"ns": 24, "std": 48}, "CO": {"ns": 24, "std": 48}, "CR": {"ns": 24, "std": 48}, "CS": {"ns": 72, "std": 96}, "CT": {"ns": 96, "std": 120}, "CZ": {"ns": 72, "std": 96}, "EN": {"ns": 96, "std": 120}, "FE": {"ns": 24, "std": 48}, "FG": {"ns": 72, "std": 96}, "FI": {"ns": 24, "std": 48}, "FM": {"ns": 24, "std": 48}, "FR": {"ns": 48, "std": 72}, "GE": {"ns": 24, "std": 72}, "GO": {"ns": 24, "std": 72}, "GR": {"ns": 48, "std": 72}, "IM": {"ns": 48, "std": 72}, "IS": {"ns": 48, "std": 72}, "KR": {"ns": 72, "std": 96}, "LC": {"ns": 24, "std": 48}, "LE": {"ns": 72, "std": 96}, "LI": {"ns": 24, "std": 72}, "LO": {"ns": 24, "std": 48}, "LT": {"ns": 48, "std": 72}, "LU": {"ns": 24, "std": 72}, "MB": {"ns": 24, "std": 48}, "MC": {"ns": 24, "std": 48}, "ME": {"ns": 96, "std": 120}, "MI": {"ns": 24, "std": 48}, "MN": {"ns": 24, "std": 48}, "MO": {"ns": 24, "std": 48}, "MS": {"ns": 24, "std": 72}, "MT": {"ns": 72, "std": 96}, "NA": {"ns": 48, "std": 72}, "NO": {"ns": 24, "std": 48}, "NU": {"ns": 72, "std": 96}, "OG": {"ns": 72, "std": 96}, "OR": {"ns": 72, "std": 96}, "OT": {"ns": 72, "std": 96}, "PA": {"ns": 96, "std": 120}, "PC": {"ns": 24, "std": 48}, "PD": {"ns": 24, "std": 48}, "PE": {"ns": 48, "std": 72}, "PG": {"ns": 24, "std": 72}, "PI": {"ns": 24, "std": 72}, "PN": {"ns": 24, "std": 48}, "PO": {"ns": 24, "std": 48}, "PR": {"ns": 24, "std": 48}, "PT": {"ns": 24, "std": 72}, "PU": {"ns": 24, "std": 48}, "PV": {"ns": 24, "std": 48}, "PZ": {"ns": 72, "std": 96}, "RA": {"ns": 24, "std": 72}, "RC": {"ns": 72, "std": 96}, "RE": {"ns": 24, "std": 48}, "RG": {"ns": 96, "std": 120}, "RI": {"ns": 48, "std": 72}, "RM": {"ns": 48, "std": 72}, "RN": {"ns": 24, "std": 48}, "RO": {"ns": 24, "std": 48}, "SA": {"ns": 48, "std": 72}, "SI": {"ns": 48, "std": 72}, "SO": {"ns": 48, "std": 72}, "SP": {"ns": 48, "std": 72}, "SR": {"ns": 96, "std": 120}, "SS": {"ns": 72, "std": 96}, "SV": {"ns": 48, "std": 72}, "TA": {"ns": 72, "std": 96}, "TE": {"ns": 48, "std": 72}, "TN": {"ns": 24, "std": 72}, "TO": {"ns": 24, "std": 48}, "TP": {"ns": 96, "std": 120}, "TR": {"ns": 48, "std": 72}, "TS": {"ns": 24, "std": 72}, "TV": {"ns": 24, "std": 48}, "UD": {"ns": 24, "std": 48}, "VA": {"ns": 24, "std": 48}, "VB": {"ns": 48, "std": 72}, "VC": {"ns": 24, "std": 48}, "VE": {"ns": 24, "std": 48}, "VI": {"ns": 24, "std": 48}, "VR": {"ns": 24, "std": 48}, "VS": {"ns": 72, "std": 96}, "VT": {"ns": 48, "std": 72}, "VV": {"ns": 72, "std": 96}};
-
+ 
 // CAP località disagiate Prealpina/Pallex 2026
 const DISAGIATE_CAPS = new Set(["01010", "01020", "01021", "01022", "01024", "01026", "01030", "01656", "01657", "01658", "01659", "01660", "01832", "01833", "01854", "01862", "01863", "01864", "01865", "01866", "01871", "01873", "01874", "01875", "01880", "01882", "01884", "01885", "01911", "01914", "01918", "01922", "01923", "01925", "01927", "01928", "01929", "01933", "01934", "01936", "01937", "01938", "01941", "01942", "01943", "01944", "01945", "01946", "01947", "01948", "01961", "01965", "01966", "01968", "01969", "01971", "01972", "01973", "01974", "01976", "01977", "01978", "01981", "01982", "01983", "01984", "01985", "01986", "01987", "01988", "01991", "01992", "01993", "01996", "01997", "02010", "02011", "02012", "02013", "02016", "02019", "02020", "02021", "02022", "02023", "02024", "02025", "02026", "02028", "02033", "02040", "02067", "02100", "02117", "02123", "02124", "02126", "02127", "02149", "02208", "02314", "02316", "02318", "02325", "02354", "02362", "02406", "02414", "02416", "02518", "02532", "02712", "02713", "02714", "02715", "02716", "02717", "02718", "02722", "02723", "02747", "02748", "02762", "02803", "02805", "02806", "02807", "02812", "02813", "02814", "02825", "02826", "02827", "02828", "02829", "02832", "02842", "02843", "02857", "02863", "02864", "02873", "02882", "02883", "02884", "02885", "02886", "02887", "02888", "02889", "02908", "02912", "02914", "02915", "02916", "02924", "02932", "02933", "02935", "02953", "02954", "03010", "03016", "03020", "03028", "03030", "03040", "03041", "03046", "03715", "03722", "03723", "03724", "03725", "03754", "03755", "03756", "03757", "03771", "03772", "03773", "03775", "03776", "03777", "03778", "03780", "03781", "03782", "03783", "03784", "03785", "03792", "03801", "03803", "03804", "03813", "03816", "03818", "03822", "03823", "03824", "03825", "03826", "03855", "03857", "03860", "03862", "03863", "03864", "03901", "03903", "03905", "03906", "03907", "03908", "03910", "03911", "03912", "03913", "03914", "03916", "03917", "03918", "03919", "03920", "03922", "03923", "03924", "03925", "03926", "03927", "03928", "03929", "03932", "03933", "03934", "03935", "03937", "03938", "03939", "03943", "03944", "03947", "03948", "03949", "03953", "03954", "03955", "03956", "03957", "03961", "03963", "03967", "03971", "03973", "03975", "03982", "03983", "03984", "03985", "03986", "03987", "03988", "03989", "03991", "03992", "03993", "03994", "03995", "03996", "03997", "03998", "03999", "04010", "04017", "04020", "04021", "04027", "04031", "05010", "05018", "05020", "05022", "05023", "05030", "05031", "05035", "05100", "06010", "06021", "06022", "06023", "06024", "06025", "06026", "06027", "06028", "06030", "06034", "06035", "06040", "06041", "06043", "06045", "06046", "06047", "06049", "06057", "06059", "06060", "06067", "06068", "06072", "06084", "06085", "06086", "06174", "06196", "06197", "06383", "06387", "06388", "06390", "06391", "06433", "06434", "06464", "06465", "06466", "06469", "06475", "06476", "06482", "06484", "06485", "06490", "06491", "06493", "06538", "06540", "06541", "06542", "06543", "06544", "06545", "06546", "06547", "06548", "06549", "06571", "06582", "06583", "06584", "06605", "06611", "06631", "06632", "06633", "06634", "06635", "06636", "06637", "06647", "06657", "06658", "06659", "06661", "06662", "06663", "06664", "06674", "06675", "06676", "06682", "06683", "06684", "06685", "06690", "06692", "06693", "06694", "06695", "06696", "06717", "06718", "06719", "06720", "06722", "06723", "06724", "06746", "06747", "06748", "06749", "06760", "06773", "06774", "06777", "06781", "06823", "06836", "06838", "06867", "06875", "06951", "06958", "06959", "06978", "07010", "07011", "07016", "07019", "07024", "07026", "07027", "07028", "07029", "07032", "07033", "07040", "07046", "07050", "07056", "07057", "07058", "07062", "07063", "07064", "07074", "07075", "07076", "07077", "07078", "07082", "07083", "07084", "07104", "07106", "07107", "07109", "07111", "07112", "07113", "07114", "07115", "07116", "07122", "07126", "07127", "07128", "07132", "07133", "07134", "07135", "07136", "07137", "07138", "07141", "07142", "07143", "07144", "07145", "07146", "07147", "07148", "07149", "07151", "07152", "07153", "07154", "07155", "07156", "07157", "07158", "07159", "07162", "07163", "07164", "07165", "07166", "07167", "07168", "07172", "07173", "07174", "07175", "07176", "07180", "07182", "07183", "07184", "07185", "07186", "07187", "07188", "07189", "07202", "07212", "07213", "07215", "07222", "07223", "07224", "07226", "07228", "07231", "07232", "07233", "07235", "07241", "07242", "07243", "07244", "07245", "07246", "07247", "07249", "07250", "07252", "07260", "07265", "07270", "07272", "07276", "07277", "07278", "07303", "07312", "07313", "07314", "07315", "07317", "07325", "07326", "07404", "07407", "07412", "07413", "07414", "07415", "07416", "07417", "07418", "07419", "07421", "07422", "07423", "07424", "07425", "07426", "07427", "07428", "07431", "07432", "07433", "07434", "07435", "07436", "07437", "07438", "07442", "07443", "07444", "07445", "07446", "07447", "07448", "07450", "07451", "07452", "07453", "07454", "07455", "07456", "07457", "07458", "07459", "07460", "07462", "07463", "07464", "07472", "07473", "07477", "07482", "07484", "07492", "07493", "07494", "07500", "07502", "07503", "07504", "07505", "07512", "07513", "07514", "07515", "07516", "07517", "07522", "07523", "07524", "07525", "07526", "07527", "07530", "07532", "07533", "07534", "07535", "07536", "07537", "07542", "07543", "07545", "07546", "07550", "07551", "07552", "07553", "07554", "07556", "07557", "07558", "07559", "07560", "07562", "07563", "07602", "07603", "07604", "07605", "07606", "07608", "07610", "07710", "07741", "07742", "07743", "07744", "07745", "07746", "07747", "07748", "08010", "08020", "08024", "08026", "08027", "08030", "08031", "08032", "08036", "08038", "08039", "08040", "08046", "08784", "08842", "08843", "08845", "08849", "08857", "08858", "08873", "08878", "08881", "08884", "08893", "08894", "08895", "08896", "08897", "08898", "09010", "09014", "09019", "09021", "09031", "09040", "09053", "09057", "09058", "09059", "09062", "09064", "09065", "09066", "09073", "09075", "09080", "09090", "09107", "09633", "09655", "09656", "09657", "09658", "10010", "10020", "10030", "10031", "10039", "10040", "10050", "10052", "10054", "10056", "10058", "10059", "10060", "10062", "10063", "10065", "10066", "10069", "10070", "10080", "10081", "10084", "10085", "10089", "10090", "10094", "11010", "11011", "11012", "11013", "11014", "11015", "11016", "11017", "11018", "11020", "11021", "11022", "11023", "11024", "11025", "11028", "12010", "12011", "12013", "12014", "12015", "12017", "12018", "12019", "12020", "12021", "12025", "12027", "12028", "12029", "12030", "12031", "12034", "12040", "12050", "12054", "12056", "12060", "12070", "12071", "12072", "12073", "12074", "12075", "12077", "12078", "12079", "12080", "12082", "12083", "12084", "12087", "12088", "13010", "13020", "13021", "13022", "13023", "13024", "13025", "13026", "13027", "13028", "13811", "13812", "13815", "13821", "13823", "13824", "13833", "13835", "13841", "13843", "13847", "13861", "13863", "13864", "13867", "13868", "13887", "13900", "14013", "14016", "14020", "14022", "14023", "14024", "14031", "14034", "14040", "14042", "14044", "14050", "14051", "14054", "14058", "14059", "14100", "15010", "15015", "15018", "15020", "15021", "15030", "15034", "15040", "15050", "15054", "15056", "15060", "15070", "15074", "15075", "16010", "16012", "16013", "16014", "16016", "16018", "16019", "16020", "16021", "16022", "16023", "16024", "16025", "16026", "16027", "16028", "16029", "16030", "16031", "16032", "16034", "16039", "16040", "16041", "16043", "16044", "16045", "16046", "16047", "16048", "16049", "17010", "17013", "17017", "17020", "17022", "17027", "17028", "17030", "17032", "17033", "17034", "17037", "17039", "17040", "17043", "17044", "17045", "17046", "17048", "17057", "17058", "18010", "18012", "18017", "18020", "18021", "18022", "18023", "18024", "18025", "18026", "18030", "18031", "18032", "18034", "18035", "18036", "18037", "19010", "19011", "19012", "19013", "19014", "19015", "19016", "19017", "19018", "19020", "19025", "19028", "19031", "19032", "19034", "21010", "21016", "21030", "21031", "21035", "21037", "21039", "21050", "22010", "22011", "22013", "22014", "22015", "22016", "22017", "22018", "22019", "22020", "22021", "22022", "22023", "22024", "22025", "22028", "22030", "22033", "22034", "22035", "22038", "22039", "22061", "22100", "23010", "23020", "23021", "23023", "23024", "23026", "23029", "23030", "23031", "23032", "23033", "23034", "23035", "23036", "23038", "23041", "23100", "23802", "23805", "23811", "23813", "23814", "23815", "23816", "23817", "23818", "23819", "23821", "23822", "23823", "23824", "23825", "23826", "23827", "23828", "23829", "23831", "23832", "23833", "23834", "23835", "23836", "23837", "23838", "23865", "23886", "24010", "24012", "24013", "24014", "24015", "24016", "24017", "24019", "24020", "24024", "24028", "24030", "24032", "24037", "24038", "24060", "24063", "25010", "25019", "25040", "25042", "25043", "25044", "25048", "25050", "25051", "25053", "25055", "25056", "25059", "25060", "25061", "25070", "25071", "25072", "25074", "25076", "25078", "25079", "25080", "25083", "25084", "25087", "25088", "27030", "27040", "27044", "27047", "27049", "27050", "27052", "27057", "27059", "27061", "28010", "28011", "28016", "28028", "28040", "28801", "28804", "28811", "28812", "28813", "28814", "28815", "28816", "28817", "28818", "28819", "28821", "28822", "28823", "28824", "28825", "28826", "28827", "28828", "28832", "28833", "28836", "28838", "28841", "28842", "28843", "28846", "28851", "28852", "28853", "28854", "28855", "28856", "28857", "28858", "28859", "28861", "28862", "28863", "28864", "28865", "28866", "28868", "28871", "28873", "28875", "28876", "28879", "28887", "28891", "28893", "28894", "28895", "28896", "28897", "28898", "28899", "29010", "29018", "29020", "29021", "29022", "29023", "29024", "29025", "29026", "30013", "30028", "30121", "30122", "30123", "30124", "30125", "30126", "30132", "30133", "30135", "30141", "30142", "31010", "31029", "31049", "31050", "32010", "32012", "32020", "32021", "32022", "32023", "32027", "32033", "32040", "32041", "32042", "32043", "32044", "32045", "32046", "33010", "33012", "33014", "33015", "33016", "33018", "33020", "33021", "33022", "33023", "33024", "33025", "33026", "33027", "33028", "33029", "33030", "33040", "33043", "33046", "33080", "33081", "33090", "33094", "34070", "34078", "34170", "35040", "36010", "36012", "36020", "36021", "36029", "36030", "36032", "36040", "36044", "36046", "36052", "36070", "36076", "36078", "37010", "37015", "37020", "37021", "37022", "37023", "37024", "37028", "37030", "38010", "38011", "38012", "38013", "38018", "38019", "38020", "38021", "38022", "38023", "38024", "38025", "38026", "38027", "38028", "38029", "38030", "38031", "38032", "38033", "38035", "38036", "38037", "38038", "38039", "38040", "38041", "38042", "38043", "38046", "38047", "38048", "38049", "38050", "38053", "38054", "38055", "38057", "38059", "38060", "38061", "38064", "38065", "38067", "38068", "38070", "38071", "38075", "38077", "38078", "38079", "38080", "38082", "38083", "38085", "38086", "38087", "38088", "38089", "38092", "38094", "38095", "38096", "39010", "39013", "39015", "39016", "39017", "39019", "39020", "39021", "39023", "39024", "39025", "39026", "39027", "39028", "39029", "39030", "39031", "39032", "39033", "39034", "39035", "39036", "39037", "39038", "39039", "39040", "39041", "39042", "39043", "39045", "39046", "39047", "39048", "39049", "39050", "39053", "39054", "39056", "39058", "40021", "40022", "40024", "40025", "40026", "40030", "40032", "40034", "40035", "40036", "40038", "40041", "40042", "40043", "40046", "40048", "40050", "40059", "40060", "40062", "40063", "40065", "40068", "41020", "41021", "41022", "41023", "41025", "41026", "41027", "41028", "41029", "41040", "41044", "41045", "41046", "41048", "41049", "41052", "41054", "41055", "41059", "42010", "42020", "42026", "42030", "42031", "42032", "42033", "42034", "42035", "43010", "43021", "43024", "43025", "43028", "43030", "43032", "43037", "43040", "43041", "43042", "43043", "43045", "43046", "43047", "43049", "43050", "43051", "43053", "43059", "44014", "44020", "44022", "44029", "45010", "45011", "45012", "45014", "45015", "45017", "45018", "45019", "45032", "45037", "47010", "47012", "47015", "47017", "47018", "47019", "47020", "47021", "47025", "47027", "47028", "47030", "47826", "47834", "47835", "47836", "47837", "47854", "47855", "47861", "47862", "47863", "47864", "47865", "47866", "47867", "47868", "47869", "48013", "48022", "48025", "48031", "48032", "50022", "50023", "50025", "50027", "50031", "50032", "50033", "50034", "50035", "50036", "50038", "50039", "50050", "50059", "50060", "50062", "50065", "50066", "51010", "51020", "51024", "51028", "51100", "52010", "52014", "52032", "52033", "52038", "52044", "53011", "53012", "53013", "53014", "53015", "53016", "53017", "53018", "53019", "53020", "53021", "53023", "53024", "53025", "53026", "53027", "53030", "53031", "53034", "53037", "53040", "53041", "53047", "53049", "54011", "54012", "54013", "54014", "54015", "54016", "54021", "54023", "54026", "54027", "54028", "54029", "54033", "54035", "54100", "55010", "55019", "55020", "55022", "55023", "55025", "55027", "55030", "55031", "55032", "55033", "55034", "55035", "55036", "55038", "55040", "55041", "55047", "55051", "55060", "55064", "55100", "56030", "56034", "56036", "56040", "56041", "56042", "56044", "56045", "56046", "56048", "57016", "57020", "57022", "57025", "57028", "57030", "57031", "57033", "57034", "57036", "57037", "57038", "58010", "58011", "58012", "58014", "58017", "58018", "58019", "58020", "58023", "58024", "58025", "58026", "58027", "58031", "58033", "58034", "58036", "58037", "58038", "58042", "58043", "58044", "58045", "58051", "58053", "58054", "58055", "59011", "59015", "59024", "59025", "59026", "60010", "60011", "60012", "60030", "60036", "60040", "60041", "60044", "60048", "61010", "61013", "61020", "61021", "61023", "61026", "61028", "61030", "61040", "61041", "61042", "61043", "61044", "61045", "61046", "61048", "61049", "62010", "62011", "62020", "62021", "62022", "62024", "62025", "62026", "62027", "62028", "62031", "62032", "62034", "62035", "62036", "62038", "62039", "63068", "63069", "63071", "63072", "63086", "63087", "63088", "63091", "63092", "63093", "63094", "63095", "63096", "63100", "63815", "63816", "63834", "63836", "63837", "63838", "63841", "63842", "63843", "63846", "63847", "63848", "63852", "63853", "63854", "63855", "63856", "63857", "63858", "64010", "64030", "64031", "64033", "64034", "64035", "64036", "64037", "64039", "64040", "64041", "64042", "64043", "64044", "64045", "64047", "64049", "64100", "64190", "65010", "65020", "65023", "65025", "66010", "66015", "66016", "66017", "66018", "66019", "66030", "66031", "66033", "66040", "66042", "66045", "66046", "66050", "66052", "67013", "67014", "67015", "67020", "67023", "67024", "67025", "67029", "67030", "67037", "67038", "67045", "67050", "67052", "67054", "67061", "67100", "70015", "70020", "70029", "71010", "71012", "71013", "71014", "71015", "71018", "71019", "71020", "71021", "71023", "71024", "71026", "71027", "71028", "71030", "71031", "71033", "71034", "71035", "71037", "71038", "71039", "71040", "71043", "72013", "72018", "72029", "73034", "73040", "73050", "73053", "74015", "75010", "75011", "75018", "75019", "75021", "75022", "75026", "75027", "75028", "75029", "76012", "76013", "76014", "76015", "76016", "76017", "76123", "80050", "80051", "80054", "80060", "80061", "80062", "80063", "80065", "80066", "80067", "80069", "80070", "80071", "80072", "80073", "80074", "80075", "80076", "80077", "80079", "81010", "81011", "81012", "81013", "81014", "81016", "81017", "81020", "81035", "81037", "81040", "81042", "82010", "82015", "82020", "82022", "82023", "82024", "82025", "82026", "82027", "82028", "82029", "82030", "82032", "82033", "83010", "83011", "83012", "83014", "83015", "83016", "83017", "83018", "83020", "83021", "83022", "83023", "83027", "83030", "83031", "83032", "83034", "83037", "83040", "83041", "83043", "83044", "83045", "83046", "83047", "83048", "83049", "83050", "83051", "83052", "83053", "83054", "83055", "83056", "83057", "83058", "83059", "84010", "84011", "84017", "84020", "84021", "84022", "84023", "84026", "84027", "84028", "84029", "84030", "84031", "84032", "84033", "84034", "84037", "84038", "84039", "84040", "84042", "84044", "84045", "84046", "84047", "84048", "84049", "84050", "84051", "84052", "84053", "84055", "84056", "84057", "84059", "84060", "84061", "84062", "84065", "84066", "84067", "84068", "84069", "84070", "84073", "84074", "84075", "84076", "84077", "84078", "84079", "84080", "84090", "84095", "85010", "85012", "85018", "85020", "85023", "85030", "85031", "85032", "85033", "85034", "85035", "85036", "85038", "85040", "85042", "85043", "85044", "85046", "85048", "85049", "85052", "86010", "86012", "86013", "86014", "86015", "86016", "86017", "86020", "86024", "86026", "86027", "86028", "86029", "86030", "86031", "86033", "86037", "86040", "86043", "86044", "86048", "86070", "86071", "86074", "86078", "86080", "86081", "86082", "86083", "86084", "86085", "86086", "86087", "86088", "86089", "86090", "86091", "86092", "86094", "86095", "86096", "86097", "87014", "87016", "87026", "87037", "87040", "87050", "87059", "87061", "87070", "87073", "88020", "88024", "88040", "88050", "88055", "88062", "88067", "88817", "88818", "88819", "88822", "88823", "88825", "88831", "88832", "88833", "88834", "88835", "88836", "88837", "88838", "89010", "89012", "89017", "89020", "89027", "89030", "89033", "89034", "89035", "89036", "89040", "89050", "89056", "89057", "89060", "89063", "89064", "89065", "89069", "89822", "89823", "89824", "89832", "90010", "90012", "90013", "90016", "90020", "90021", "90022", "90023", "90024", "90025", "90026", "90027", "90028", "90029", "90030", "90032", "90033", "90034", "90035", "90037", "90038", "90040", "90043", "90048", "90052", "90054", "90061", "90066", "90070", "90071", "90082", "91010", "91012", "91016", "91017", "91020", "91023", "91029", "91030", "92010", "92012", "92013", "92017", "92018", "92020", "92035", "93010", "93013", "93018", "94010", "94011", "94013", "94014", "94015", "94018", "94019", "94020", "94021", "94028", "95010", "95012", "95015", "95034", "95035", "95036", "95040", "95049", "95050", "95059", "96010", "96017", "97010", "97015", "97017", "98030", "98031", "98033", "98034", "98041", "98043", "98050", "98055", "98058", "98060", "98062", "98064", "98065", "98067", "98068", "98069", "98070", "98073", "98074", "98075", "98078", "98079", "98155"]);
-
+ 
 function getPrezzo_Prealpina(prov, alt, peso, servizio) {
   const p = prov.toUpperCase().trim();
   const listino = servizio === 'nonstop' ? PREALPINA_NS : PREALPINA;
@@ -996,12 +1158,12 @@ function getPrezzo_Prealpina(prov, alt, peso, servizio) {
   if (maj > 0) prezzo = prezzo * (1 + maj);
   return { prezzo: Math.round(prezzo * 100) / 100, cls, servizio: servizio === 'nonstop' ? 'Non Stop' : 'Standard' };
 }
-
+ 
 // ══════════════════════════════════════════════
 // MEDIALOGISTICA — classi PL1..PL8 (+ PLV5)
 // Fonte: mEDIALOGISTICA.xlsx
 // ══════════════════════════════════════════════
-
+ 
 // Classifica MediaLogistica: basata su altezza E peso — si prende la classe maggiore
 // PL1: ≤150kg, h≤60cm
 // PL2: ≤300kg, h≤80cm
@@ -1024,7 +1186,7 @@ function getMediaClass(peso, alt) {
   else if (peso <= 1000) idxPeso = 7; // PL7
   else if (peso <= 1200) idxPeso = 8; // PL8
   else idxPeso = 8;
-
+ 
   // Classe da altezza
   let idxAlt;
   if (alt <= 60)       idxAlt = 0; // PL1
@@ -1032,13 +1194,13 @@ function getMediaClass(peso, alt) {
   else if (alt <= 120) idxAlt = 2; // PL3
   else if (alt <= 160) idxAlt = 3; // PL4
   else                 idxAlt = 4; // PLV5 (h>160 fino a 240)
-
+ 
   // Se altezza porta a PLV5 (idx 4) ma peso supera 450kg, si scala alla classe peso
   // Si prende il massimo tra i due indici
   return Math.max(idxPeso, idxAlt);
 }
 const MEDIA_CLASSI = ['PL1','PL2','PL3','PL4','PLV5','PL5','PL6','PL7','PL8'];
-
+ 
 const MEDIA = {
   'PE': [37.8,39.9,53.9,63.55,71.3,79.05,82.15,89.9,91.45],
   'TE': [37.8,39.9,53.9,63.55,71.3,79.05,82.15,89.9,91.45],
@@ -1149,7 +1311,7 @@ const MEDIA = {
   'VI': [32.2,35,44.8,51.93,55.03,61.23,64.33,67.43,72.08],
   'BL': [37.8,42,51.8,62,68.2,75.95,82.15,85.25,89.9],
 };
-
+ 
 function getPrezzo_Media(prov, peso, alt, lung, larg) {
   const p = prov.toUpperCase().trim();
   const tariffe = MEDIA[p];
@@ -1165,14 +1327,14 @@ function getPrezzo_Media(prov, peso, alt, lung, larg) {
   if (maj > 0) prezzo = prezzo * (1 + maj);
   return { prezzo: Math.round(prezzo * 100) / 100, cls };
 }
-
+ 
 // ══════════════════════════════════════════════
 // BRT — tariffa a peso per regione (€/100kg)
 // Fonte: BRT_TARIFFA filiale Origgio, gen/2026
 // Tassazione volumetrica: 200 kg/m³
 // Minimo 100 kg, arrotondamento oltre 100: 50 in 50
 // ══════════════════════════════════════════════
-
+ 
 const BRT_REGIONI = {
   "VAL D'AOSTA": { prov: ['AO'], euro100: 15.0 },
   'PIEMONTE':    { prov: ['TO','VC','NO','BI','CN','AT','AL','VB'], euro100: 14.0 },
@@ -1195,7 +1357,7 @@ const BRT_REGIONI = {
   'SICILIA':     { prov: ['PA','TP','AG','CL','EN','CT','SR','RG','ME'], euro100: 22.0 },
   'SARDEGNA':    { prov: ['CA','CI','SS','NU','OR','OG','OT','SU','VS'], euro100: 22.0 },
 };
-
+ 
 function getBRTregione(prov) {
   const p = prov.toUpperCase().trim();
   for (const [reg, data] of Object.entries(BRT_REGIONI)) {
@@ -1203,7 +1365,7 @@ function getBRTregione(prov) {
   }
   return null;
 }
-
+ 
 function getPrezzo_BRT(prov, peso, lung, larg) {
   const r = getBRTregione(prov);
   if (!r) return null;
@@ -1217,14 +1379,14 @@ function getPrezzo_BRT(prov, peso, lung, larg) {
   const prezzo = (pesoTax / 100) * r.euro100;
   return { prezzo: Math.round(prezzo * 100) / 100, cls: r.regione, pesoTax };
 }
-
+ 
 // ══════════════════════════════════════════════
 // THL — tariffa a peso per area (€/100kg)
 // Fonte: THL_TARIFFE_ITALIA.pdf
 // Scaglioni: 1000 / 2000 / 3000 / 5000 kg
 // Rapporto peso/volume: 250 kg/m³ | Min. tassabile 300 kg
 // ══════════════════════════════════════════════
-
+ 
 // [area_nome, province[], [€/100kg a 1000, a 2000, a 3000, a 5000]]
 const THL_AREE = [
   { nome: 'MI-CO-VA', prov: ['MI','CO','VA','MB'], t: [9.5,8,7,6.5] },
@@ -1262,7 +1424,7 @@ const THL_AREE = [
   { nome: 'PA-TP-AG-EN', prov: ['PA','TP','AG','EN','CL'], t: [24.5,22.5,22.5,20.5] },
   { nome: 'CT-SR-ME-RG', prov: ['CT','SR','ME','RG'], t: [25,23,23,21] },
 ];
-
+ 
 function getTHLArea(prov) {
   const p = prov.toUpperCase().trim();
   for (const area of THL_AREE) {
@@ -1270,14 +1432,14 @@ function getTHLArea(prov) {
   }
   return null;
 }
-
+ 
 function getTHLScaglione(pesoTax) {
   if (pesoTax <= 1000) return 0;
   if (pesoTax <= 2000) return 1;
   if (pesoTax <= 3000) return 2;
   return 3;
 }
-
+ 
 function getPrezzo_THL(prov, peso, lung, larg, alt) {
   const area = getTHLArea(prov);
   if (!area) return null;
@@ -1290,19 +1452,17 @@ function getPrezzo_THL(prov, peso, lung, larg, alt) {
   const prezzo = (pesoTax / 100) * tariffa;
   return { prezzo: Math.round(prezzo * 100) / 100, cls: area.nome, pesoTax: Math.round(pesoTax) };
 }
-
+ 
 // ══════════════════════════════════════════════
 // STATE + UI
 // ══════════════════════════════════════════════
-let qtySelezionata = 1;
-let servizioPrealpina = 'standard';
-
+ 
 function setServizio(s) {
   servizioPrealpina = s;
   document.getElementById('svc-standard').classList.toggle('selected', s === 'standard');
   document.getElementById('svc-nonstop').classList.toggle('selected', s === 'nonstop');
 }
-
+ 
 function setQty(n) {
   qtySelezionata = n;
   [1,2,3,4,5].forEach(i => {
@@ -1329,63 +1489,63 @@ function getValues() {
     peso: parseFloat(document.getElementById('peso').value) || 0,
   };
 }
-
+ 
 function onInput() {
   const { lung, larg, alt, peso, prov } = getValues();
   const area = lung > 0 ? (lung * larg) / 10000 : 0;
-
+ 
   // Classificazioni
   const clsPre = lung > 0 ? getPrealpinaClass(alt, peso) : '—';
   const clsMed = peso > 0 ? MEDIA_CLASSI[getMediaClass(peso, alt)] : '—';
-
+ 
   const bPre  = document.getElementById('cls-prealpina');
   const bMed  = document.getElementById('cls-media');
   const bBrt  = document.getElementById('cls-brt');
   const bThl  = document.getElementById('cls-thl');
   const bBs   = document.getElementById('cls-bs');
-
+ 
   bPre.textContent = clsPre;
   bMed.textContent = clsMed;
-
+ 
   // BRT badge: regione
   const brtReg = prov.length === 2 ? getBRTregione(prov) : null;
   bBrt.textContent = brtReg ? brtReg.regione.split(' ')[0] : '—';
-
+ 
   // THL badge: area
   const thlA = prov.length === 2 ? getTHLArea(prov) : null;
   bThl.textContent = thlA ? thlA.nome.split('-')[0] : '—';
-
+ 
   // BS badge
   const bsD = prov.length === 2 ? BS_DATA[prov.toUpperCase()] : null;
   bBs.textContent = bsD ? bsD.prov.split(' ')[0] : 'N/D';
   bBs.className = 'cls-badge ' + (bsD ? 'green' : 'gray');
-
+ 
   // ASAP badge
   const bAsap = document.getElementById('cls-asap');
   const asapD = prov.length === 2 ? ASAP_DATA[prov.toUpperCase()] : null;
   bAsap.textContent = asapD ? (ASAP_ZONA[prov.toUpperCase()] || prov.toUpperCase()) : 'N/D';
   bAsap.className = 'cls-badge ' + (asapD ? 'orange' : 'gray');
-
+ 
   // SUSA badge
   const bSusa = document.getElementById('cls-susa');
   const susaReg = prov.length === 2 ? SUSA_PROV_REGIONE[prov.toUpperCase()] : null;
   bSusa.textContent = susaReg ? susaReg.split(' ')[0] : 'N/D';
   bSusa.className = 'cls-badge ' + (susaReg ? 'blue' : 'gray');
-
+ 
   // Colori
   const clsColors = {
     'Mini':'green','Quarter':'green','Half':'orange','Medium':'orange',
     'Light':'blue','Large':'blue','Full':'orange','Big':'red','Mega':'red'
   };
   bPre.className = 'cls-badge ' + (clsColors[clsPre] || 'gray');
-
+ 
   const medColors = {'PL1':'green','PL2':'green','PL3':'orange','PL4':'orange','PLV5':'blue','PL5':'blue','PL6':'red','PL7':'red','PL8':'red'};
   bMed.className = 'cls-badge ' + (medColors[clsMed] || 'gray');
   bBrt.className = 'cls-badge ' + (brtReg ? 'green' : 'gray');
   bThl.className = 'cls-badge ' + (thlA ? 'purple' : 'gray');
-
+ 
   document.getElementById('area-info').textContent = lung > 0 ? `Area: ${area.toFixed(2)} m²` : '';
-
+ 
   // CTA
   const cta = document.getElementById('cta');
   const ok = prov.length === 2 && lung > 0 && larg > 0 && alt > 0 && peso > 0;
@@ -1394,16 +1554,16 @@ function onInput() {
     ? `→ CONFRONTA PREZZI PER ${prov}`
     : prov.length === 0 ? '→ CONFRONTA PREZZI — INSERISCI PROVINCIA' : '→ CONFRONTA PREZZI — COMPLETA LE MISURE';
 }
-
+ 
 function calcola() {
   const { lung, larg, alt, peso, prov } = getValues();
   if (prov.length !== 2 || !lung || !larg || !alt || !peso) return;
-
+ 
   const qty = qtySelezionata;
   const cap = (document.getElementById('cap').value || '').trim().padStart(5, '0');
   const isDisagiata = cap.length === 5 && DISAGIATE_CAPS.has(cap);
   const resa = TEMPI_RESA[prov] || null;
-
+ 
   const rPre = getPrezzo_Prealpina(prov, alt, peso, servizioPrealpina);
   const rMed = getPrezzo_Media(prov, peso, alt, lung, larg);
   const rBrt = getPrezzo_BRT(prov, peso, lung, larg);
@@ -1411,10 +1571,10 @@ function calcola() {
   const rBs  = getPrezzo_BS(prov, peso, lung, larg, alt);
   const rAsap = getPrezzo_ASAP(prov, peso, lung, larg, alt, isDisagiata);
   const rSusa = getPrezzo_SUSA(prov, peso, lung, larg, alt);
-
+ 
   const area = (lung * larg) / 10000;
   const vol  = (lung * larg * alt) / 1000000;
-
+ 
   const prezzi = [
     rPre ? rPre.prezzo * qty : null,
     rMed ? rMed.prezzo * qty : null,
@@ -1426,17 +1586,17 @@ function calcola() {
   ];
   const validi = prezzi.filter(v => v !== null);
   const minP = validi.length ? Math.min(...validi) : null;
-
+ 
   document.getElementById('res-title').textContent = `Risultati per ${prov} — ${qty} bancal${qty > 1 ? 'i' : 'e'}`;
   let sub = `${lung}×${larg}×${alt} cm | ${peso} kg | Area ${area.toFixed(2)} m² | Vol ${vol.toFixed(3)} m³`;
   if (isDisagiata) sub += ' | ⚠️ ZONA DISAGIATA';
   document.getElementById('res-sub').textContent = sub;
-
+ 
   function resaLabel(ore) {
     if (!ore) return '';
     return `${ore}h`;
   }
-
+ 
   function card(vettore, res, totale) {
     if (!res || totale === null) {
       return `<div class="prezzo-card">
@@ -1450,7 +1610,7 @@ function calcola() {
     const resaOre = (vettore === 'PREALPINA' && resa) ? (servizioPrealpina === 'nonstop' ? resa.ns : resa.std) : null;
     const resaStr = resaOre ? `<br>Resa indicativa: <span>${resaOre}h</span>` : '';
     const disagStr = (isDisagiata && vettore === 'PREALPINA') ? `<br><span style="color:var(--accent)">⚠️ Zona disagiata (+€35 sponda)</span>` : '';
-
+ 
     if (vettore === 'PREALPINA') {
       detail = `Servizio: <span>${res.servizio}</span><br>Classe: <span>${res.cls}</span><br>Per bancale: <span>€ ${perBancale}</span>${resaStr}${disagStr}`;
     } else if (vettore === 'MEDIALOGISTICA') {
@@ -1472,7 +1632,7 @@ function calcola() {
       <div class="prezzo-detail">${detail}</div>
     </div>`;
   }
-
+ 
   document.getElementById('prezzi-grid').innerHTML =
     card('PREALPINA',    rPre, prezzi[0]) +
     card('MEDIALOGISTICA', rMed, prezzi[1]) +
@@ -1481,17 +1641,204 @@ function calcola() {
     card('BS PARTNERS', rBs,  prezzi[4]) +
     card('ASAP LOGISTICA', rAsap, prezzi[5]) +
     card('SUSA', rSusa, prezzi[6]);
-
+ 
   const el = document.getElementById('results');
   el.style.display = 'block';
   el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
-
+ 
 function showTab(t) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
 }
-
+ 
+onInput();
+ 
+ 
+// ── OVERRIDE UI FUNCTIONS ──
+ 
+let qtySelezionata = 1;
+let servizioPrealpina = 'standard';
+ 
+function setServizio(s) {
+  servizioPrealpina = s;
+  document.getElementById('svc-standard').classList.toggle('active', s === 'standard');
+  document.getElementById('svc-nonstop').classList.toggle('active', s === 'nonstop');
+}
+ 
+function setQty(n) {
+  qtySelezionata = n;
+  [1,2,3,4,5].forEach(i => {
+    const b = document.getElementById('qty-btn-' + i);
+    if (b) b.classList.toggle('active', i === n);
+  });
+  document.getElementById('qty-custom').value = '';
+  onInput();
+}
+ 
+function onQtyCustom(v) {
+  const n = parseInt(v);
+  if (!isNaN(n) && n > 0) {
+    qtySelezionata = n;
+    [1,2,3,4,5].forEach(i => {
+      const b = document.getElementById('qty-btn-' + i);
+      if (b) b.classList.remove('active');
+    });
+    onInput();
+  }
+}
+ 
+function getValues() {
+  return {
+    prov: document.getElementById('provincia').value.toUpperCase().trim(),
+    lung: parseFloat(document.getElementById('lung').value) || 0,
+    larg: parseFloat(document.getElementById('larg').value) || 0,
+    alt:  parseFloat(document.getElementById('alt').value)  || 0,
+    peso: parseFloat(document.getElementById('peso').value) || 0,
+  };
+}
+ 
+function onInput() {
+  const { lung, larg, alt, peso, prov } = getValues();
+  const area = lung > 0 ? (lung * larg) / 10000 : 0;
+ 
+  const clsPre = lung > 0 ? getPrealpinaClass(alt, peso) : '—';
+  const clsMed = peso > 0 ? MEDIA_CLASSI[getMediaClass(peso, alt)] : '—';
+ 
+  const bPre = document.getElementById('cls-prealpina');
+  const bMed = document.getElementById('cls-media');
+  const bBrt = document.getElementById('cls-brt');
+  const bThl = document.getElementById('cls-thl');
+  const bBs  = document.getElementById('cls-bs');
+  const bAsap= document.getElementById('cls-asap');
+  const bSusa= document.getElementById('cls-susa');
+ 
+  bPre.textContent = clsPre;
+  bMed.textContent = clsMed;
+ 
+  const brtR = prov.length === 2 ? getBRTregione(prov) : null;
+  bBrt.textContent = brtR ? brtR.regione.split(' ')[0] : '—';
+  bBrt.className = 'cls-badge ' + (brtR ? 'green' : 'muted');
+ 
+  const thlA = prov.length === 2 ? getTHLArea(prov) : null;
+  bThl.textContent = thlA ? thlA.nome.split('-')[0] : '—';
+  bThl.className = 'cls-badge ' + (thlA ? 'violet' : 'muted');
+ 
+  const bsD = prov.length === 2 ? BS_DATA[prov] : null;
+  bBs.textContent = bsD ? bsD.prov.split(' ')[0] : 'N/D';
+  bBs.className = 'cls-badge ' + (bsD ? 'green' : 'muted');
+ 
+  const asapD = prov.length === 2 ? ASAP_DATA[prov] : null;
+  bAsap.textContent = asapD ? (ASAP_ZONA[prov] || prov) : 'N/D';
+  bAsap.className = 'cls-badge ' + (asapD ? 'amber' : 'muted');
+ 
+  const susaR = prov.length === 2 ? SUSA_PROV_REGIONE[prov] : null;
+  bSusa.textContent = susaR ? susaR.split(' ')[0] : 'N/D';
+  bSusa.className = 'cls-badge ' + (susaR ? 'blue' : 'muted');
+ 
+  const clsColors = {Mini:'green',Quarter:'green',Half:'amber',Medium:'amber',Light:'blue',Large:'blue',Full:'amber',Big:'red',Mega:'red'};
+  bPre.className = 'cls-badge ' + (clsColors[clsPre] || 'muted');
+  const medC = {PL1:'green',PL2:'green',PL3:'amber',PL4:'amber',PLV5:'blue',PL5:'blue',PL6:'red',PL7:'red',PL8:'red'};
+  bMed.className = 'cls-badge ' + (medC[clsMed] || 'muted');
+ 
+  document.getElementById('area-info').textContent = lung > 0 ? 'Area ' + area.toFixed(2) + ' m²' : '';
+ 
+  const ok = prov.length === 2 && lung > 0 && larg > 0 && alt > 0 && peso > 0;
+  const cta = document.getElementById('cta');
+  cta.className = ok ? 'cta ready' : 'cta';
+  cta.textContent = ok
+    ? '→ CONFRONTA PREZZI PER ' + prov
+    : prov.length === 0 ? '→ INSERISCI PROVINCIA E MISURE PER CONFRONTARE' : '→ COMPLETA TUTTE LE MISURE';
+}
+ 
+function calcola() {
+  const { lung, larg, alt, peso, prov } = getValues();
+  if (prov.length !== 2 || !lung || !larg || !alt || !peso) return;
+ 
+  const qty = qtySelezionata;
+  const capRaw = (document.getElementById('cap').value || '').trim();
+  const cap = capRaw.padStart(5, '0');
+  const isDisagiata = capRaw.length === 5 && DISAGIATE_CAPS.has(cap);
+  const resa = TEMPI_RESA[prov] || null;
+ 
+  const rPre  = getPrezzo_Prealpina(prov, alt, peso, servizioPrealpina);
+  const rMed  = getPrezzo_Media(prov, peso, alt, lung, larg);
+  const rBrt  = getPrezzo_BRT(prov, peso, lung, larg);
+  const rThl  = getPrezzo_THL(prov, peso, lung, larg, alt);
+  const rBs   = getPrezzo_BS(prov, peso, lung, larg, alt);
+  const rAsap = getPrezzo_ASAP(prov, peso, lung, larg, alt, isDisagiata);
+  const rSusa = getPrezzo_SUSA(prov, peso, lung, larg, alt);
+ 
+  const area = (lung * larg) / 10000;
+  const vol  = (lung * larg * alt) / 1000000;
+ 
+  const vettori = [
+    { name:'PREALPINA',     r:rPre },
+    { name:'MEDIALOGISTICA',r:rMed },
+    { name:'BRT',           r:rBrt },
+    { name:'THL',           r:rThl },
+    { name:'BS PARTNERS',   r:rBs  },
+    { name:'ASAP LOGISTICA',r:rAsap},
+    { name:'SUSA',          r:rSusa},
+  ];
+ 
+  const totali = vettori.map(v => v.r ? v.r.prezzo * qty : null);
+  const validi = totali.filter(t => t !== null);
+  const minP = validi.length ? Math.min(...validi) : null;
+ 
+  document.getElementById('res-title').textContent =
+    prov + ' — ' + qty + ' bancal' + (qty > 1 ? 'i' : 'e');
+  let sub = lung+'×'+larg+'×'+alt+' cm  |  '+peso+' kg  |  Area '+area.toFixed(2)+' m²  |  Vol '+vol.toFixed(3)+' m³';
+  document.getElementById('res-sub').innerHTML = sub +
+    (isDisagiata ? ' <span class="disagiata-badge">⚠ zona disagiata</span>' : '');
+ 
+  function makeCard(v, totale, idx) {
+    const r = v.r;
+    if (!r || totale === null) {
+      return '<div class="p-card"><div class="p-vettore">'+v.name+'</div><div class="p-na">Non coperta</div></div>';
+    }
+    const isBest = totale === minP;
+    const perB = (totale / qty).toFixed(2);
+    let detail = '';
+    const resaOre = (v.name === 'PREALPINA' && resa) ? (servizioPrealpina === 'nonstop' ? resa.ns : resa.std) : null;
+    const disagStr = (isDisagiata && v.name === 'PREALPINA') ? '<br><span style="color:#92400e">⚠ zona disagiata</span>' : '';
+ 
+    if (v.name === 'PREALPINA') {
+      detail = 'Servizio: <span class="hi">'+r.servizio+'</span><br>Classe: <span class="hi">'+r.cls+'</span><br>Per bancale: <span class="hi">€ '+perB+'</span>'+disagStr;
+    } else if (v.name === 'MEDIALOGISTICA') {
+      detail = 'Classe: <span class="hi">'+r.cls+'</span><br>Per bancale: <span class="hi">€ '+perB+'</span>';
+    } else if (v.name === 'BRT') {
+      detail = 'Regione: <span class="hi">'+r.cls+'</span><br>Peso tax: <span class="hi">'+r.pesoTax+' kg</span><br>Per bancale: <span class="hi">€ '+perB+'</span>';
+    } else if (v.name === 'THL') {
+      detail = 'Area: <span class="hi">'+r.cls+'</span><br>Peso tax: <span class="hi">'+r.pesoTax+' kg</span><br>Per bancale: <span class="hi">€ '+perB+'</span>';
+    } else if (v.name === 'BS PARTNERS') {
+      detail = 'Provincia: <span class="hi">'+r.cls+'</span><br>Peso tax: <span class="hi">'+r.pesoTax+' kg</span><br>Per bancale: <span class="hi">€ '+perB+'</span>';
+    } else if (v.name === 'ASAP LOGISTICA') {
+      detail = 'Zona: <span class="hi">'+r.cls+'</span><br>Classe: <span class="hi">'+(r.clsBancale||'—')+'</span><br>Per bancale: <span class="hi">€ '+perB+'</span>';
+    } else if (v.name === 'SUSA') {
+      detail = 'Regione: <span class="hi">'+r.cls+'</span><br>Peso tax: <span class="hi">'+r.pesoTax+' kg</span><br>Per bancale: <span class="hi">€ '+perB+'</span>';
+    }
+ 
+    const resaBadge = resaOre ? '<div class="p-resa">⏱ '+resaOre+'h resa</div>' : (v.name === 'SUSA' && r.resa ? '<div class="p-resa">⏱ '+r.resa+' gg lav.</div>' : '');
+ 
+    return '<div class="p-card'+(isBest ? ' best' : '')+'">'
+      + (isBest ? '<div class="best-pill">MIGLIOR PREZZO</div>' : '')
+      + '<div class="p-vettore">'+v.name+'</div>'
+      + '<div class="p-prezzo"><span class="p-eur">€</span>'+totale.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
+      + '<div class="p-detail">'+detail+'</div>'
+      + resaBadge
+      + '</div>';
+  }
+ 
+  const top4 = vettori.slice(0,4);
+  const bot3 = vettori.slice(4);
+  document.getElementById('grid-top').innerHTML = top4.map((v,i) => makeCard(v, totali[i], i)).join('');
+  document.getElementById('grid-bot').innerHTML = bot3.map((v,i) => makeCard(v, totali[i+4], i+4)).join('');
+ 
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+ 
 onInput();
 </script>
 </body>
