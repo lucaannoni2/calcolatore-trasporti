@@ -220,16 +220,20 @@ nav{
 /* ── PREZZI GRID ── */
 .prezzi-grid{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(5,1fr);
   gap:10px;
   margin-bottom:10px;
 }
 .prezzi-grid-row2{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(5,1fr);
   gap:10px;
 }
-@media(max-width:700px){
+@media(max-width:900px){
+  .prezzi-grid{grid-template-columns:repeat(3,1fr)}
+  .prezzi-grid-row2{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:600px){
   .prezzi-grid{grid-template-columns:repeat(2,1fr)}
   .prezzi-grid-row2{grid-template-columns:repeat(2,1fr)}
 }
@@ -368,6 +372,7 @@ nav{
         <div class="cls-item"><span class="cls-carrier">ASAP</span><span class="cls-badge amber" id="cls-asap">—</span></div>
         <div class="cls-item"><span class="cls-carrier">SUSA</span><span class="cls-badge blue" id="cls-susa">—</span></div>
         <div class="cls-item"><span class="cls-carrier">Bertoni</span><span class="cls-badge green" id="cls-bertoni">—</span></div>
+        <div class="cls-item"><span class="cls-carrier">MiVaCo</span><span class="cls-badge muted" id="cls-mivaco">—</span></div>
       </div>
       <span class="cls-area" id="area-info"></span>
     </div>
@@ -419,7 +424,7 @@ nav{
   </div>
  
   <div class="disclaimer">
-    ⚠ Prezzi indicativi da listini reali: Prealpina (mag/2026), MediaLogistica (mar/2026), BRT (gen/2026), THL (2024), BS Partners (2026), ASAP Logistica, SUSA (apr/2026), Bertoni/One Express (apr/2026 – val. 30/09/2026).
+    ⚠ Prezzi indicativi da listini reali: Prealpina (mag/2026), MediaLogistica (mar/2026), BRT (gen/2026), THL (2024), BS Partners (2026), ASAP Logistica, SUSA (apr/2026), Bertoni/One Express (apr/2026), MI.VA.CO. (2024).
     Non includono IVA, supplemento carburante, ZTL o servizi accessori. Verificare sempre con il vettore prima della spedizione.
   </div>
 </div>
@@ -1199,6 +1204,106 @@ const BERTONI_CLASSI = ['P150','P300','P550','PS450','PS550','P800','P1000'];
  
 // Dati Silver: [P150, P300, P550, PS450, PS550, P800, P1000]  + resa (ore)
 // Dati Gold:   [P150, P300, P550, PS450, PS550, P800, P1000]  + resa (ore)
+// ══════════════════════════════════════════════
+// MI.VA.CO. TRANSPORT — tariffa €/100 kg
+// Fonte: TARIFFE_2024_PALLETTIZZATO (fogli tariffe clienti)
+// Scaglioni: 0-500 kg, 501-1000 kg, 1001-2000 kg
+// Minimo tassabile: 300 kg
+// Volumetrico: 300 kg/m³ (standard groupage)
+// Zona disagiata: +30% sulla tariffa
+// Sede: Saronno (VA) — copertura nazionale
+// ══════════════════════════════════════════════
+ 
+// rates: [0-500, 501-1000, 1001-2000] (€/100 kg)
+const MIVACO = {
+  // NORD — Lombardia
+  'BG':[35,32.5,30], 'BS':[35,32.5,30], 'CO':[25,23.5,23],
+  'CR':[27.5,26,25.5], 'LC':[27.5,26,25.5], 'LO':[27.5,26,25.5],
+  'MB':[25,23.5,23], 'MI':[25,23.5,23], 'MN':[27.5,26,25.5],
+  'PV':[27.5,26,25.5], 'SO':[35,32.5,30], 'VA':[25,23.5,23],
+  // Piemonte
+  'AL':[45,43.5,40], 'AT':[45,43.5,40], 'BI':[45,43.5,40],
+  'CN':[55,53.5,50], 'NO':[45,43.5,40], 'TO':[45,43.5,40],
+  'VB':[45,43.5,40], 'VC':[45,43.5,40],
+  // Liguria
+  'GE':[55,53.5,50], 'IM':[55,53.5,50], 'SP':[55,53.5,50], 'SV':[55,53.5,50],
+  // Valle d'Aosta
+  'AO':[60,58,57],
+  // Friuli
+  'GO':[60,58,57], 'PN':[60,58,57], 'TS':[60,58,57], 'UD':[60,58,57],
+  // Veneto
+  'BL':[60,58,57], 'PD':[60,58,57], 'RO':[60,58,57], 'TV':[60,58,57],
+  'VE':[60,58,57], 'VR':[60,58,57], 'VI':[60,58,57],
+  // Trentino
+  'BZ':[60,58,57], 'TN':[60,58,57],
+  // CENTRO — Toscana
+  'AR':[25,24.5,24], 'FI':[25,24.5,24], 'GR':[25,24.5,24],
+  'LI':[25,24.5,24], 'LU':[25,24.5,24], 'MS':[25,24.5,24],
+  'PI':[25,24.5,24], 'PT':[25,24.5,24], 'PO':[25,24.5,24], 'SI':[25,24.5,24],
+  // Emilia Romagna
+  'BO':[25,24.5,24], 'FC':[25,24.5,24], 'FE':[25,24.5,24],
+  'MO':[25,24.5,24], 'PC':[25,24.5,24], 'PR':[25,24.5,24],
+  'RA':[25,24.5,24], 'RE':[25,24.5,24], 'RN':[25,24.5,24],
+  // Marche
+  'AN':[25,24.5,24], 'AP':[25,24.5,24], 'FM':[25,24.5,24],
+  'MC':[25,24.5,24], 'PU':[25,24.5,24],
+  // Abruzzo
+  'AQ':[26.5,26,25.5], 'CH':[26.5,26,25.5], 'PE':[26.5,26,25.5], 'TE':[26.5,26,25.5],
+  // Umbria
+  'PG':[25,24.5,24], 'TR':[25,24.5,24],
+  // Lazio
+  'FR':[27,26.5,25.7], 'LT':[27,26.5,25.7], 'RI':[27,26.5,25.7],
+  'RM':[27,26.5,25.7], 'VT':[27,26.5,25.7],
+  // SUD — Campania
+  'AV':[27,26.5,25.7], 'BN':[27,26.5,25.7], 'CE':[27,26.5,25.7],
+  'NA':[27,26.5,25.7], 'SA':[27,26.5,25.7],
+  // Calabria
+  'CS':[27,26.5,25.7], 'CZ':[27,26.5,25.7], 'KR':[27,26.5,25.7],
+  'RC':[27,26.5,25.7], 'VV':[27,26.5,25.7],
+  // Basilicata
+  'MT':[27,26.5,25.7], 'PZ':[27,26.5,25.7],
+  // Puglia
+  'BA':[27,26.5,25.7], 'BR':[27,26.5,25.7], 'BT':[27,26.5,25.7],
+  'FG':[27,26.5,25.7], 'LE':[27,26.5,25.7], 'TA':[27,26.5,25.7],
+  // Molise — non presente nel listino; non coperto
+  // Sardegna
+  'CA':[37.5,36.5,35], 'CI':[37.5,36.5,35], 'NU':[37.5,36.5,35],
+  'OG':[37.5,36.5,35], 'OR':[37.5,36.5,35], 'OT':[37.5,36.5,35],
+  'SS':[37.5,36.5,35], 'VS':[37.5,36.5,35], 'SU':[37.5,36.5,35],
+  // Sicilia (formula 19.5+8.5 = 28.0 per 0-500)
+  'AG':[28,26.5,25.7], 'CL':[28,26.5,25.7], 'CT':[28,26.5,25.7],
+  'EN':[28,26.5,25.7], 'ME':[28,26.5,25.7], 'PA':[28,26.5,25.7],
+  'RG':[28,26.5,25.7], 'SR':[28,26.5,25.7], 'TP':[28,26.5,25.7],
+};
+ 
+function getMivacoScaglione(pesoTax) {
+  if (pesoTax <= 500)  return 0;
+  if (pesoTax <= 1000) return 1;
+  return 2;
+}
+ 
+function getPrezzo_Mivaco(prov, peso, lung, larg, alt, isDisagiata) {
+  const p = prov.toUpperCase().trim();
+  const rates = MIVACO[p];
+  if (!rates) return null;
+ 
+  // Peso tassabile: max(reale, volumetrico 300 kg/m³), minimo 300 kg
+  const vol = (lung * larg * alt) / 1000000;
+  let pesoTax = Math.max(peso, vol * 300, 300);
+ 
+  const scag = getMivacoScaglione(pesoTax);
+  let prezzo = (pesoTax / 100) * rates[scag];
+ 
+  // Zona disagiata: +30%
+  if (isDisagiata) prezzo *= 1.30;
+ 
+  return {
+    prezzo: Math.round(prezzo * 100) / 100,
+    cls: scag === 0 ? '0-500 kg' : scag === 1 ? '501-1000 kg' : '1001-2000 kg',
+    pesoTax: Math.round(pesoTax),
+  };
+}
+ 
 const BERTONI = {
   'AO': { s:[31.5,49.5,74.0,85.5,91.5,102.5,111.0,72],  g:[50.0,77.5,117.0,133.0,139.5,155.5,167.5,48] },
   'AL': { s:[27.0,42.0,59.0,64.0,70.5,76.0,86.5,48],    g:[44.0,65.5,91.0,102.5,112.5,121.0,136.0,24] },
@@ -1999,6 +2104,11 @@ function onInput() {
   bBertoni.textContent = bertoniD ? BERTONI_CLASSI[bertoniClasse(peso > 0 ? peso : 300, alt > 0 ? alt : 100)] : 'N/D';
   bBertoni.className = 'cls-badge ' + (bertoniD ? 'green' : 'muted');
  
+  const bMivaco = document.getElementById('cls-mivaco');
+  const mivacoD = prov.length === 2 ? MIVACO[prov] : null;
+  bMivaco.textContent = mivacoD ? '€/ql' : 'N/D';
+  bMivaco.className = 'cls-badge ' + (mivacoD ? 'amber' : 'muted');
+ 
   const clsColors = {Mini:'green',Quarter:'green',Half:'amber',Medium:'amber',Light:'blue',Large:'blue',Full:'amber',Big:'red',Mega:'red'};
   bPre.className = 'cls-badge ' + (clsColors[clsPre] || 'muted');
   const medC = {PL1:'green',PL2:'green',PL3:'amber',PL4:'amber',PLV5:'blue',PL5:'blue',PL6:'red',PL7:'red',PL8:'red'};
@@ -2032,6 +2142,7 @@ function calcola() {
   const rAsap = getPrezzo_ASAP(prov, peso, lung, larg, alt, isDisagiata);
   const rSusa = getPrezzo_SUSA(prov, peso, lung, larg, alt);
   const rBertoni = getPrezzo_Bertoni(prov, peso, lung, larg, alt, servizioBertoni);
+  const rMivaco = getPrezzo_Mivaco(prov, peso, lung, larg, alt, isDisagiata);
  
   const area = (lung * larg) / 10000;
   const vol  = (lung * larg * alt) / 1000000;
@@ -2045,6 +2156,7 @@ function calcola() {
     { name:'ASAP LOGISTICA',r:rAsap},
     { name:'SUSA',          r:rSusa},
     { name:'BERTONI',       r:rBertoni},
+    { name:'MI.VA.CO.',      r:rMivaco},
   ];
  
   const totali = vettori.map(v => v.r ? v.r.prezzo * qty : null);
@@ -2084,6 +2196,8 @@ function calcola() {
       detail = 'Regione: <span class="hi">'+r.cls+'</span><br>Peso tax: <span class="hi">'+r.pesoTax+' kg</span><br>Per bancale: <span class="hi">€ '+perB+'</span>';
     } else if (v.name === 'BERTONI') {
       detail = 'Servizio: <span class="hi">'+r.servizio+'</span><br>Classe: <span class="hi">'+r.cls+'</span>'+(r.coeff ? '<br>Coeff. dim.: <span class="hi">×'+r.coeff+'</span>' : '')+'<br>Per bancale: <span class="hi">€ '+perB+'</span>';
+    } else if (v.name === 'MI.VA.CO.') {
+      detail = 'Scaglione: <span class="hi">'+r.cls+'</span><br>Peso tax: <span class="hi">'+r.pesoTax+' kg</span><br>Per bancale: <span class="hi">€ '+perB+'</span>';
     }
  
     const resaBadge = resaOre ? '<div class="p-resa">⏱ '+resaOre+'h resa</div>'
@@ -2099,10 +2213,10 @@ function calcola() {
       + '</div>';
   }
  
-  const top4 = vettori.slice(0,4);
-  const bot4 = vettori.slice(4);
-  document.getElementById('grid-top').innerHTML = top4.map((v,i) => makeCard(v, totali[i], i)).join('');
-  document.getElementById('grid-bot').innerHTML = bot4.map((v,i) => makeCard(v, totali[i+4], i+4)).join('');
+  const top5 = vettori.slice(0,5);
+  const bot5 = vettori.slice(5);
+  document.getElementById('grid-top').innerHTML = top5.map((v,i) => makeCard(v, totali[i], i)).join('');
+  document.getElementById('grid-bot').innerHTML = bot5.map((v,i) => makeCard(v, totali[i+5], i+5)).join('');
  
   document.getElementById('results').style.display = 'block';
   document.getElementById('results').scrollIntoView({behavior:'smooth',block:'nearest'});
