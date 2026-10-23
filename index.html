@@ -220,7 +220,7 @@ nav{
 /* ── PREZZI GRID ── */
 .prezzi-grid{
   display:grid;
-  grid-template-columns:repeat(5,1fr);
+  grid-template-columns:repeat(auto-fill,minmax(168px,1fr));
   gap:10px;
   margin-bottom:10px;
 }
@@ -302,12 +302,16 @@ nav{
     <h1 class="hero-title">Calcola il costo di spedizione.<br><em>Il vettore migliore lo troviamo noi.</em></h1>
     <div class="hero-sub" style="margin-top:14px">
       <span class="hero-sub-item">Prealpina mag/2026</span>
-      <span class="hero-sub-item">MediaLogistica 2023</span>
-      <span class="hero-sub-item">BRT gen/2026</span>
+      <span class="hero-sub-item">MediaLogistica mar/2026</span>
+      <span class="hero-sub-item">BRT 2027</span>
       <span class="hero-sub-item">THL 2024</span>
       <span class="hero-sub-item">BS Partners 2026</span>
       <span class="hero-sub-item">ASAP Logistica</span>
       <span class="hero-sub-item">SUSA apr/2026</span>
+      <span class="hero-sub-item">Bertoni apr/2026</span>
+      <span class="hero-sub-item">MI.VA.CO. 2024</span>
+      <span class="hero-sub-item">Cermesoni giu/2026</span>
+      <span class="hero-sub-item">Arco 2027</span>
     </div>
   </div>
 
@@ -374,6 +378,7 @@ nav{
         <div class="cls-item"><span class="cls-carrier">Bertoni</span><span class="cls-badge green" id="cls-bertoni">—</span></div>
         <div class="cls-item"><span class="cls-carrier">MiVaCo</span><span class="cls-badge muted" id="cls-mivaco">—</span></div>
         <div class="cls-item"><span class="cls-carrier">Cermesoni</span><span class="cls-badge muted" id="cls-cermesoni">—</span></div>
+        <div class="cls-item"><span class="cls-carrier">Arco</span><span class="cls-badge muted" id="cls-arco">—</span></div>
       </div>
       <span class="cls-area" id="area-info"></span>
     </div>
@@ -425,7 +430,7 @@ nav{
   </div>
 
   <div class="disclaimer">
-    ⚠ Prezzi indicativi da listini reali: Prealpina (mag/2026), MediaLogistica (mar/2026), BRT (gen/2026), THL (2024), BS Partners (2026), ASAP Logistica, SUSA (apr/2026), Bertoni/One Express (apr/2026), MI.VA.CO. (2024).
+    ⚠ Prezzi indicativi da listini reali: Prealpina (mag/2026), MediaLogistica (mar/2026), BRT (2027), THL (2024), BS Partners (2026), ASAP Logistica, SUSA (apr/2026), Bertoni/One Express (apr/2026), MI.VA.CO. (2024), Cermesoni (giu/2026), Arco Spedizioni (2027).
     Non includono IVA, supplemento carburante, ZTL o servizi accessori. Verificare sempre con il vettore prima della spedizione.
   </div>
 </div>
@@ -1787,26 +1792,27 @@ function getPrezzo_Media(prov, peso, alt, lung, larg, qty) {
 // ══════════════════════════════════════════════
 
 const BRT_REGIONI = {
-  "VAL D'AOSTA": { prov: ['AO'], euro100: 15.0 },
-  'PIEMONTE':    { prov: ['TO','VC','NO','BI','CN','AT','AL','VB'], euro100: 14.0 },
-  'LOMBARDIA':   { prov: ['MI','MB','LO','VA','CO','LC','SO','BG','BS','CR','MN','PV'], euro100: 13.0 },
-  'LIGURIA':     { prov: ['GE','SV','IM','SP'], euro100: 14.0 },
-  'VENETO':      { prov: ['VR','VI','PD','VE','TV','RO','BL'], euro100: 14.0 },
-  'FRIULI VG':   { prov: ['UD','PN','GO','TS'], euro100: 14.5 },
-  'TRENTINO AA': { prov: ['TN','BZ'], euro100: 14.5 },
-  'EMILIA ROM.': { prov: ['PC','PR','RE','MO','BO','FE','RA','FC','RN'], euro100: 14.0 },
-  'TOSCANA':     { prov: ['MS','LU','PT','FI','PO','LI','PI','AR','SI','GR'], euro100: 14.0 },
-  'UMBRIA':      { prov: ['PG','TR'], euro100: 16.0 },
-  'LAZIO':       { prov: ['VT','RI','RM','LT','FR'], euro100: 16.0 },
-  'MARCHE':      { prov: ['PU','AN','MC','AP','FM'], euro100: 16.0 },
-  'ABRUZZO':     { prov: ['PE','TE','AQ','CH'], euro100: 16.0 },
-  'MOLISE':      { prov: ['CB','IS'], euro100: 17.2 },
-  'CAMPANIA':    { prov: ['CE','NA','BN','AV','SA'], euro100: 19.9 },
-  'PUGLIA':      { prov: ['FG','BA','BT','BR','TA','LE'], euro100: 20.5 },
-  'BASILICATA':  { prov: ['PZ','MT'], euro100: 21.5 },
-  'CALABRIA':    { prov: ['CS','CZ','KR','VV','RC'], euro100: 22.0 },
-  'SICILIA':     { prov: ['PA','TP','AG','CL','EN','CT','SR','RG','ME'], euro100: 22.0 },
-  'SARDEGNA':    { prov: ['CA','CI','SS','NU','OR','OG','OT','SU','VS'], euro100: 22.0 },
+  // euro100: [0-500 kg, 501-1500 kg, oltre 1500 kg] in €/q.le — offerta 6720967 del 22/10/2026, valida 01/01/2027-31/12/2027
+  "VAL D'AOSTA": { prov: ['AO'], euro100: [12.6,12.5,12.1] },
+  'PIEMONTE':    { prov: ['TO','VC','NO','BI','CN','AT','AL','VB'], euro100: [11.5,11.3,10.8] },
+  'LOMBARDIA':   { prov: ['MI','MB','LO','VA','CO','LC','SO','BG','BS','CR','MN','PV'], euro100: [10.3,9.8,9.5] },
+  'LIGURIA':     { prov: ['GE','SV','IM','SP'], euro100: [11.3,11.1,10.7] },
+  'VENETO':      { prov: ['VR','VI','PD','VE','TV','RO','BL'], euro100: [11.3,11.1,10.7] },
+  'FRIULI VG':   { prov: ['UD','PN','GO','TS'], euro100: [11.4,10.8,10.5] },
+  'TRENTINO AA': { prov: ['TN','BZ'], euro100: [11.8,11.5,11.0] },
+  'EMILIA ROM.': { prov: ['PC','PR','RE','MO','BO','FE','RA','FC','RN'], euro100: [11.6,11.3,10.8] },
+  'TOSCANA':     { prov: ['MS','LU','PT','FI','PO','LI','PI','AR','SI','GR'], euro100: [12.8,12.4,11.8] },
+  'UMBRIA':      { prov: ['PG','TR'], euro100: [13.1,12.8,12.4] },
+  'LAZIO':       { prov: ['VT','RI','RM','LT','FR'], euro100: [14.5,14.3,14.0] },
+  'MARCHE':      { prov: ['PU','AN','MC','AP','FM'], euro100: [14.9,14.6,13.6] },
+  'ABRUZZO':     { prov: ['PE','TE','AQ','CH'], euro100: [13.8,13.5,13.2] },
+  'MOLISE':      { prov: ['CB','IS'], euro100: [15.9,15.5,15.0] },
+  'CAMPANIA':    { prov: ['CE','NA','BN','AV','SA'], euro100: [16.7,16.5,16.3] },
+  'PUGLIA':      { prov: ['FG','BA','BT','BR','TA','LE'], euro100: [17.6,17.3,17.1] },
+  'BASILICATA':  { prov: ['PZ','MT'], euro100: [18.8,18.2,17.9] },
+  'CALABRIA':    { prov: ['CS','CZ','KR','VV','RC'], euro100: [19.8,19.5,19.2] },
+  'SICILIA':     { prov: ['PA','TP','AG','CL','EN','CT','SR','RG','ME'], euro100: [22.5,21.3,21.0] },
+  'SARDEGNA':    { prov: ['CA','CI','SS','NU','OR','OG','OT','SU','VS'], euro100: [22.5,21.3,21.0] },
 };
 
 function getBRTregione(prov) {
@@ -1817,18 +1823,99 @@ function getBRTregione(prov) {
   return null;
 }
 
-function getPrezzo_BRT(prov, peso, lung, larg) {
+// BRT 2027: volumetrico 250 kg/m³ — arrotondamenti: fino a 500 kg di 50 in 50, oltre di 100 in 100
+// Località disagiate: +€3,50/q.le (minimo tassabile 100 kg)
+function getPrezzo_BRT(prov, peso, lung, larg, isDisagiata) {
   const r = getBRTregione(prov);
   if (!r) return null;
-  // Peso tassabile (max tra peso reale e volumetrico 200 kg/m³)
   const vol = (lung * larg * parseFloat(document.getElementById('alt').value)) / 1000000;
-  const pesoVol = vol * 200;
-  let pesoTax = Math.max(peso, pesoVol);
-  // Arrotondamento: min 100, poi 50 in 50
-  if (pesoTax < 100) pesoTax = 100;
-  else if (pesoTax > 100) pesoTax = Math.ceil(pesoTax / 50) * 50;
-  const prezzo = (pesoTax / 100) * r.euro100;
+  let pesoTax = Math.max(peso, vol * 250, 100);
+  pesoTax = pesoTax <= 500 ? Math.ceil(pesoTax / 50) * 50 : Math.ceil(pesoTax / 100) * 100;
+  const scag = pesoTax <= 500 ? 0 : pesoTax <= 1500 ? 1 : 2;
+  let prezzo = (pesoTax / 100) * r.euro100[scag];
+  if (isDisagiata) prezzo += (pesoTax / 100) * 3.5;
   return { prezzo: Math.round(prezzo * 100) / 100, cls: r.regione, pesoTax };
+}
+
+// ══════════════════════════════════════════════
+// ARCO SPEDIZIONI — tariffa a peso €/100 kg (nolo)
+// Fonte: offerta 2026-106-000113 del 22/10/2026, valida 01/01/2027-31/12/2027 (copia non vincolante)
+// Scaglioni: 1-100, 101-500, 501-1000, 1001-3000, oltre 3000 kg
+// Volumetrico: 1 mc = 250 kg | Minimo tassabile 100 kg | Diritto fisso €2,00 a spedizione
+// Il minimo dello scaglione successivo non può essere inferiore al massimo del precedente
+// Disagiate +€5/q.le | Fuori misura/non sovrapponibile come da condizioni integrative
+// ══════════════════════════════════════════════
+const ARCO_GRUPPI = [
+  { n:"VALLE D'AOSTA", p:['AO'],                                    r:[18.70,18.30,17.95,17.35,16.60] },
+  { n:'PIEMONTE',      p:['TO','AL','AT','NO','VC'],                r:[16.60,16.30,16.00,15.30,14.65] },
+  { n:'PIEMONTE',      p:['BI','CN','VB'],                          r:[17.35,17.00,16.60,16.00,15.30] },
+  { n:'LOMBARDIA',     p:['MI','BG','BS','CO','LC','LO','MB','PV','VA'], r:[16.00,15.65,15.30,14.65,13.90] },
+  { n:'LOMBARDIA',     p:['CR','MN'],                               r:[16.60,16.30,16.00,15.30,14.65] },
+  { n:'LOMBARDIA',     p:['SO'],                                    r:[18.70,18.30,17.95,17.35,16.60] },
+  { n:'VENETO',        p:['VE','PD','RO','TV','VI','VR'],           r:[16.60,16.30,16.00,15.30,14.65] },
+  { n:'VENETO',        p:['BL'],                                    r:[18.70,18.30,17.95,17.35,16.60] },
+  { n:'TRENTINO A.A.', p:['TN'],                                    r:[18.70,18.30,17.95,17.35,16.60] },
+  { n:'TRENTINO A.A.', p:['BZ'],                                    r:[20.00,19.65,19.35,18.70,17.95] },
+  { n:'FRIULI',        p:['UD','GO','PN'],                          r:[20.70,20.40,20.00,19.35,18.70] },
+  { n:'FRIULI',        p:['TS'],                                    r:[22.05,21.70,21.35,20.70,20.00] },
+  { n:'LIGURIA',       p:['GE','SV','IM','SP'],                     r:[21.10,20.75,20.45,19.70,19.05] },
+  { n:'EMILIA ROM.',   p:['BO','MO','RE','PR','PC','FE','RA','FC','RN'], r:[17.95,17.65,17.35,16.60,16.00] },
+  { n:'TOSCANA',       p:['FI','LU','PI','PO'],                     r:[18.70,18.30,17.95,17.35,16.60] },
+  { n:'TOSCANA',       p:['AR','GR','LI','MS','PT','SI'],           r:[20.00,19.65,19.35,18.70,17.95] },
+  { n:'UMBRIA',        p:['PG'],                                    r:[19.35,19.05,18.70,17.95,17.35] },
+  { n:'UMBRIA',        p:['TR'],                                    r:[20.00,19.65,19.35,18.70,17.95] },
+  { n:'LAZIO',         p:['RM','VT','RI','LT','FR'],                r:[22.05,21.70,21.35,20.70,20.00] },
+  { n:'MARCHE',        p:['AN','PU','MC','AP','FM'],                r:[19.35,19.05,18.70,17.95,17.35] },
+  { n:'ABRUZZO',       p:['PE','TE'],                               r:[20.70,20.40,20.00,19.35,18.70] },
+  { n:'ABRUZZO',       p:['AQ','CH'],                               r:[22.05,21.70,21.35,20.70,20.00] },
+  { n:'MOLISE',        p:['CB'],                                    r:[22.75,22.45,22.05,21.35,20.70] },
+  { n:'MOLISE',        p:['IS'],                                    r:[23.35,23.05,22.75,22.05,21.35] },
+  { n:'CAMPANIA',      p:['NA','CE','BN','AV','SA'],                r:[22.05,21.70,21.35,20.70,20.00] },
+  { n:'PUGLIA',        p:['BA','BR','FG','TA'],                     r:[24.15,23.75,23.35,22.75,22.05] },
+  { n:'PUGLIA',        p:['LE'],                                    r:[24.70,24.45,24.15,23.35,22.75] },
+  { n:'BASILICATA',    p:['PZ'],                                    r:[24.15,23.75,23.35,22.75,22.05] },
+  { n:'BASILICATA',    p:['MT'],                                    r:[24.70,24.45,24.15,23.35,22.75] },
+  { n:'CALABRIA',      p:['RC','CZ','CS','KR','VV'],                r:[25.45,25.10,24.70,24.15,23.35] },
+  { n:'SICILIA',       p:['PA','CT','ME','SR','RG','TP','AG','CL','EN'], r:[28.10,27.80,27.40,26.80,26.05] },
+  { n:'SARDEGNA',      p:['CA','SU','NU','OR','SS','OG','OT','VS','CI'], r:[30.25,29.85,29.50,28.80,28.10] },
+];
+const ARCO = {};
+ARCO_GRUPPI.forEach(g => g.p.forEach(p => { ARCO[p] = { regione: g.n, rates: g.r }; }));
+
+function getPrezzo_ARCO(prov, peso, lung, larg, alt, isDisagiata) {
+  const d = ARCO[prov.toUpperCase().trim()];
+  if (!d) return null;
+  const vol = (lung * larg * alt) / 1000000;
+  let pesoTax = Math.max(peso, vol * 250, 100);
+  // Arrotondamento "scalare 74" non chiaro: ipotesi prudente = ai 100 kg superiori
+  pesoTax = Math.ceil(pesoTax / 100) * 100;
+
+  const scag = pesoTax <= 100 ? 0 : pesoTax <= 500 ? 1 : pesoTax <= 1000 ? 2 : pesoTax <= 3000 ? 3 : 4;
+  let prezzo = (pesoTax / 100) * d.rates[scag];
+  // Regola contrattuale: minimo dello scaglione = massimo dello scaglione precedente
+  const prevMax = [0, 100, 500, 1000, 3000][scag];
+  if (scag > 0) prezzo = Math.max(prezzo, (prevMax / 100) * d.rates[scag - 1]);
+
+  // Fuori misura (lato maggiore) e merce alta
+  const lato = Math.max(lung, larg);
+  let extra = 0;
+  if (lato > 200) {
+    if (lato <= 300)      prezzo *= 1.5;
+    else if (lato <= 400) { prezzo *= 2; extra = 50; }
+    else if (lato <= 500) { prezzo *= 2; extra = 75; }
+    else if (lato <= 600) { prezzo *= 2; extra = 100; }
+    else if (lato <= 700) { prezzo *= 2; extra = 150; }
+    else                  { prezzo *= 2; extra = 250; }
+  } else if (alt >= 201) {
+    prezzo *= 1.4; // merce non sovrapponibile / altezza ≥ 201 cm
+  }
+  prezzo += extra;
+
+  if (isDisagiata) prezzo += (pesoTax / 100) * 5;
+  prezzo += 2.00; // diritto fisso
+
+  const lab = ['1-100 kg','101-500 kg','501-1000 kg','1001-3000 kg','oltre 3000 kg'][scag];
+  return { prezzo: Math.round(prezzo * 100) / 100, cls: lab, regione: d.regione, pesoTax };
 }
 
 // ══════════════════════════════════════════════
@@ -2017,7 +2104,7 @@ function calcola() {
 
   const rPre = getPrezzo_Prealpina(prov, alt, peso, servizioPrealpina);
   const rMed = getPrezzo_Media(prov, peso, alt, lung, larg, qty);
-  const rBrt = getPrezzo_BRT(prov, peso, lung, larg);
+  const rBrt = getPrezzo_BRT(prov, peso, lung, larg, isDisagiata);
   const rThl = getPrezzo_THL(prov, peso, lung, larg, alt);
   const rBs  = getPrezzo_BS(prov, peso, lung, larg, alt);
   const rAsap = getPrezzo_ASAP(prov, peso, lung, larg, alt, isDisagiata);
@@ -2210,6 +2297,11 @@ function onInput() {
   else if (cermesoniD) { bCermesoni.textContent = '€/ql'; bCermesoni.className = 'cls-badge amber'; }
   else { bCermesoni.textContent = 'N/D'; bCermesoni.className = 'cls-badge muted'; }
 
+  const bArco = document.getElementById('cls-arco');
+  const arcoD = prov.length === 2 ? ARCO[prov.toUpperCase()] : null;
+  bArco.textContent = arcoD ? '€/ql' : 'N/D';
+  bArco.className = 'cls-badge ' + (arcoD ? 'amber' : 'muted');
+
   const clsColors = {Mini:'green',Quarter:'green',Half:'amber',Medium:'amber',Light:'blue',Large:'blue',Full:'amber',Big:'red',Mega:'red'};
   bPre.className = 'cls-badge ' + (clsColors[clsPre] || 'muted');
   const medC = {PL1:'green',PL2:'green',PL3:'amber',PL4:'amber',PLV5:'blue',PL5:'blue',PL6:'red',PL7:'red',PL8:'red'};
@@ -2237,7 +2329,7 @@ function calcola() {
 
   const rPre  = getPrezzo_Prealpina(prov, alt, peso, servizioPrealpina);
   const rMed  = getPrezzo_Media(prov, peso, alt, lung, larg, qty);
-  const rBrt  = getPrezzo_BRT(prov, peso, lung, larg);
+  const rBrt  = getPrezzo_BRT(prov, peso, lung, larg, isDisagiata);
   const rThl  = getPrezzo_THL(prov, peso, lung, larg, alt);
   const rBs   = getPrezzo_BS(prov, peso, lung, larg, alt);
   const rAsap = getPrezzo_ASAP(prov, peso, lung, larg, alt, isDisagiata);
@@ -2245,6 +2337,7 @@ function calcola() {
   const rBertoni = getPrezzo_Bertoni(prov, peso, lung, larg, alt, servizioBertoni);
   const rMivaco = getPrezzo_Mivaco(prov, peso, lung, larg, alt, isDisagiata);
   const rCermesoni = getPrezzo_Cermesoni(prov, peso, lung, larg, alt, isDisagiata);
+  const rArco = getPrezzo_ARCO(prov, peso, lung, larg, alt, isDisagiata);
 
   const area = (lung * larg) / 10000;
   const vol  = (lung * larg * alt) / 1000000;
@@ -2260,6 +2353,7 @@ function calcola() {
     { name:'BERTONI',       r:rBertoni},
     { name:'MI.VA.CO.',      r:rMivaco},
     { name:'CERMESONI',      r:rCermesoni},
+    { name:'ARCO',           r:rArco},
   ];
 
   const totali = vettori.map(v => v.r ? v.r.prezzo * qty : null);
@@ -2305,6 +2399,8 @@ function calcola() {
       detail = 'Servizio: <span class="hi">'+r.servizio+'</span><br>Classe: <span class="hi">'+r.cls+'</span>'+(r.coeff ? '<br>Coeff. dim.: <span class="hi">×'+r.coeff+'</span>' : '')+'<br>Per bancale: <span class="hi">€ '+perB+'</span>';
     } else if (v.name === 'MI.VA.CO.') {
       detail = 'Scaglione: <span class="hi">'+r.cls+'</span><br>Peso tax: <span class="hi">'+r.pesoTax+' kg</span><br>Per bancale: <span class="hi">€ '+perB+'</span>';
+    } else if (v.name === 'ARCO') {
+      detail = 'Regione: <span class="hi">'+r.regione+'</span><br>Scaglione: <span class="hi">'+r.cls+'</span><br>Peso tax: <span class="hi">'+r.pesoTax+' kg</span><br>Per bancale: <span class="hi">€ '+perB+'</span>';
     } else if (v.name === 'CERMESONI') {
       detail = r.spot ? '' : 'Scaglione: <span class="hi">'+r.cls+'</span><br>Peso tax: <span class="hi">'+r.pesoTax+' kg</span><br>Per bancale: <span class="hi">€ '+perB+'</span>';
     }
@@ -2322,10 +2418,8 @@ function calcola() {
       + '</div>';
   }
 
-  const top5 = vettori.slice(0,5);
-  const bot5 = vettori.slice(5);
-  document.getElementById('grid-top').innerHTML = top5.map((v,i) => makeCard(v, totali[i], i)).join('');
-  document.getElementById('grid-bot').innerHTML = bot5.map((v,i) => makeCard(v, totali[i+5], i+5)).join('');
+  document.getElementById('grid-top').innerHTML = vettori.map((v,i) => makeCard(v, totali[i], i)).join('');
+  document.getElementById('grid-bot').innerHTML = '';
 
   document.getElementById('results').style.display = 'block';
   document.getElementById('results').scrollIntoView({behavior:'smooth',block:'nearest'});
